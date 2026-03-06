@@ -69,18 +69,17 @@
             background: white;
             border-radius: 50%;
             box-shadow: 0 0 10px 2px rgba(255, 255, 255, 0.8);
-            animation: shoot 2s ease-out forwards;
         }
         
-        @keyframes shoot {
-            0% {
-                transform: translateX(0) translateY(0);
-                opacity: 1;
-            }
-            100% {
-                transform: translateX(300px) translateY(300px);
-                opacity: 0;
-            }
+        /* Intelligent UAP dot */
+        .uap {
+            position: absolute;
+            width: 3px;
+            height: 3px;
+            background: rgba(100, 200, 255, 0.9);
+            border-radius: 50%;
+            box-shadow: 0 0 8px 3px rgba(100, 200, 255, 0.6);
+            opacity: 0;
         }
         
         /* Galaxy clusters */
@@ -430,24 +429,151 @@
         createGalaxy(document.querySelector('.galaxy-2'), 60);
         createGalaxy(document.querySelector('.galaxy-3'), 50);
         
-        // Create shooting stars occasionally
+        // Create shooting stars from random angles
         function createShootingStar() {
             const shootingStar = document.createElement('div');
             shootingStar.className = 'shooting-star';
-            shootingStar.style.left = Math.random() * 50 + '%';
-            shootingStar.style.top = Math.random() * 50 + '%';
+            
+            // Random starting position (could be any edge or middle)
+            const startSide = Math.floor(Math.random() * 4); // 0=top, 1=right, 2=bottom, 3=left
+            let startX, startY, angle;
+            
+            switch(startSide) {
+                case 0: // Top
+                    startX = Math.random() * 100;
+                    startY = -5;
+                    angle = 45 + Math.random() * 90; // 45-135 degrees (downward)
+                    break;
+                case 1: // Right
+                    startX = 105;
+                    startY = Math.random() * 100;
+                    angle = 135 + Math.random() * 90; // 135-225 degrees (leftward)
+                    break;
+                case 2: // Bottom
+                    startX = Math.random() * 100;
+                    startY = 105;
+                    angle = 225 + Math.random() * 90; // 225-315 degrees (upward)
+                    break;
+                case 3: // Left
+                    startX = -5;
+                    startY = Math.random() * 100;
+                    angle = 315 + Math.random() * 90; // 315-45 degrees (rightward)
+                    break;
+            }
+            
+            shootingStar.style.left = startX + '%';
+            shootingStar.style.top = startY + '%';
+            
+            // Calculate direction based on angle
+            const distance = 300 + Math.random() * 200; // 300-500px travel
+            const rad = angle * Math.PI / 180;
+            const endX = Math.cos(rad) * distance;
+            const endY = Math.sin(rad) * distance;
+            
+            // Create unique animation
+            const animName = `shoot-${Date.now()}`;
+            const keyframes = `
+                @keyframes ${animName} {
+                    0% {
+                        transform: translate(0, 0);
+                        opacity: 1;
+                    }
+                    100% {
+                        transform: translate(${endX}px, ${endY}px);
+                        opacity: 0;
+                    }
+                }
+            `;
+            
+            const styleEl = document.createElement('style');
+            styleEl.textContent = keyframes;
+            document.head.appendChild(styleEl);
+            
+            shootingStar.style.animation = `${animName} ${1.5 + Math.random()}s ease-out forwards`;
+            
             starfield.appendChild(shootingStar);
             
             setTimeout(() => {
                 shootingStar.remove();
-            }, 2000);
+                styleEl.remove();
+            }, 3000);
         }
         
+        // Shooting stars every 2-5 seconds (more frequent)
         setInterval(() => {
-            if (Math.random() > 0.5) {
+            if (Math.random() > 0.3) { // 70% chance
                 createShootingStar();
             }
-        }, Math.random() * 5000 + 3000);
+        }, 2000 + Math.random() * 3000);
+        
+        // Rare intelligent UAP movement
+        function createUAP() {
+            const uap = document.createElement('div');
+            uap.className = 'uap';
+            
+            // Random starting position
+            uap.style.left = Math.random() * 100 + '%';
+            uap.style.top = Math.random() * 100 + '%';
+            
+            starfield.appendChild(uap);
+            
+            // Create intelligent movement pattern
+            const movements = [
+                // Zip to random location
+                { x: Math.random() * 80 + 10, y: Math.random() * 80 + 10, duration: 0.8, pause: 1 + Math.random() * 2 },
+                // Drift slowly
+                { x: Math.random() * 80 + 10, y: Math.random() * 80 + 10, duration: 3 + Math.random() * 2, pause: 0.5 },
+                // Quick curve
+                { x: Math.random() * 80 + 10, y: Math.random() * 80 + 10, duration: 1.2, pause: 1 },
+                // Another zip
+                { x: Math.random() * 80 + 10, y: Math.random() * 80 + 10, duration: 0.6, pause: 0 }
+            ];
+            
+            // Build animation
+            let totalTime = 0;
+            let keyframeSteps = ['0% { opacity: 0; }', '5% { opacity: 1; }'];
+            
+            movements.forEach((move, i) => {
+                const startPercent = (totalTime / 20) * 100; // Total animation ~20s
+                totalTime += move.duration + move.pause;
+                const endPercent = (totalTime / 20) * 100;
+                
+                keyframeSteps.push(`${endPercent}% { 
+                    left: ${move.x}%; 
+                    top: ${move.y}%; 
+                    opacity: 1;
+                }`);
+            });
+            
+            keyframeSteps.push('100% { opacity: 0; }');
+            
+            const animName = `uap-${Date.now()}`;
+            const keyframes = `
+                @keyframes ${animName} {
+                    ${keyframeSteps.join('\n')}
+                }
+            `;
+            
+            const styleEl = document.createElement('style');
+            styleEl.textContent = keyframes;
+            document.head.appendChild(styleEl);
+            
+            uap.style.animation = `${animName} 20s cubic-bezier(0.4, 0, 0.2, 1) forwards`;
+            
+            setTimeout(() => {
+                uap.remove();
+                styleEl.remove();
+            }, 21000);
+        }
+        
+        // Rare UAP appears every 30-60 seconds
+        function scheduleUAP() {
+            setTimeout(() => {
+                createUAP();
+                scheduleUAP(); // Schedule next one
+            }, 30000 + Math.random() * 30000);
+        }
+        scheduleUAP();
         
         // Scroll animations
         const fadeElements = document.querySelectorAll('.fade-in');
