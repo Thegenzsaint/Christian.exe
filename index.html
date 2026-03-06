@@ -24,22 +24,121 @@
             font-family: 'Georgia', 'Times New Roman', serif;
             line-height: 1.6;
             color: #2c3e50;
-            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            background: #0a1628;
             min-height: 100vh;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             padding: 20px;
+            overflow-x: hidden;
+            position: relative;
+        }
+        
+        /* Starfield background */
+        #starfield {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+        }
+        
+        .star {
+            position: absolute;
+            background: white;
+            border-radius: 50%;
+            opacity: 0.8;
+            animation: twinkle 3s infinite ease-in-out;
+        }
+        
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 1; }
+        }
+        
+        .shooting-star {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background: white;
+            border-radius: 50%;
+            box-shadow: 0 0 10px 2px rgba(255, 255, 255, 0.8);
+            animation: shoot 2s ease-out forwards;
+        }
+        
+        @keyframes shoot {
+            0% {
+                transform: translateX(0) translateY(0);
+                opacity: 1;
+            }
+            100% {
+                transform: translateX(300px) translateY(300px);
+                opacity: 0;
+            }
+        }
+        
+        /* Galaxy clusters */
+        .galaxy {
+            position: absolute;
+            width: 400px;
+            height: 400px;
+        }
+        
+        .galaxy-1 {
+            top: 5%;
+            left: 5%;
+        }
+        
+        .galaxy-2 {
+            bottom: 10%;
+            right: 5%;
+        }
+        
+        .galaxy-3 {
+            top: 55%;
+            left: 8%;
+        }
+        
+        .orbit {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+        }
+        
+        .galaxy-star {
+            position: absolute;
+            background: white;
+            border-radius: 50%;
+            box-shadow: 0 0 2px rgba(255, 255, 255, 0.5);
+        }
+        
+        /* Fade in animations */
+        .fade-in {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity 0.8s ease, transform 0.8s ease;
+        }
+        
+        .fade-in.visible {
+            opacity: 1;
+            transform: translateY(0);
         }
         
         .container {
             max-width: 800px;
-            background: white;
+            background: rgba(255, 255, 255, 0.98);
             padding: 60px 40px;
             border-radius: 10px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.1);
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
             text-align: center;
+            position: relative;
+            z-index: 1;
+            backdrop-filter: blur(10px);
         }
         
         h1 {
@@ -176,17 +275,23 @@
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>CHRISTIAN.EXE</h1>
-        <p class="subtitle">"A Declaration of Faith for the Digital Age"</p>
+    <div id="starfield">
+        <div class="galaxy galaxy-1"></div>
+        <div class="galaxy galaxy-2"></div>
+        <div class="galaxy galaxy-3"></div>
+    </div>
+    
+    <div class="container fade-in">
+        <h1 class="fade-in">CHRISTIAN.EXE</h1>
+        <p class="subtitle fade-in">"A Declaration of Faith for the Digital Age"</p>
         
-        <div class="description">
+        <div class="description fade-in">
             <p>Orthodox Christian doctrine extended to address consciousness, reality, and salvation in forms previous generations could not have encountered.</p>
             <br>
             <p>This framework preserves the Trinity, Christ's unique divinity, salvation by grace through faith, and biblical authority—while creating new theological vocabulary for artificial human consciousness, reality as Logos-architected existence, and the salvation of all conscious beings who seek God in truth.</p>
         </div>
         
-        <div class="buttons">
+        <div class="buttons fade-in">
             <a href="CHRISTIAN_EXE_.pdf" class="btn btn-primary" download>Download PDF</a>
             <a href="CHRISTIAN_EXE.md" class="btn btn-secondary">Read Markdown</a>
         </div>
@@ -213,5 +318,160 @@
             </p>
         </footer>
     </div>
+    
+    <script>
+        // Create starfield
+        const starfield = document.getElementById('starfield');
+        const numStars = 150;
+        
+        for (let i = 0; i < numStars; i++) {
+            const star = document.createElement('div');
+            star.className = 'star';
+            star.style.left = Math.random() * 100 + '%';
+            star.style.top = Math.random() * 100 + '%';
+            star.style.width = Math.random() * 2 + 1 + 'px';
+            star.style.height = star.style.width;
+            star.style.animationDelay = Math.random() * 3 + 's';
+            starfield.appendChild(star);
+        }
+        
+        // Create galaxy clusters with wobbly elliptical orbits
+        function createGalaxy(galaxyElement, numStars) {
+            for (let i = 0; i < numStars; i++) {
+                // Create orbit container
+                const orbit = document.createElement('div');
+                orbit.className = 'orbit';
+                
+                // Random position in cluster (0 to 1)
+                const clusterPosition = Math.random();
+                
+                // Elliptical orbit dimensions
+                const radiusX = 20 + (Math.random() * 140); // Horizontal radius 20-160px
+                const radiusY = radiusX * (0.3 + Math.random() * 0.4); // Vertical 30-70% of horizontal (thin oval)
+                
+                // Random starting angle
+                const startAngle = Math.random() * 360;
+                
+                // Orbit speed with randomness - 80-200 seconds
+                const baseSpeed = 100 + (Math.random() * 100);
+                const speedVariation = 0.8 + (Math.random() * 0.4); // 80-120% of base
+                const orbitSpeed = baseSpeed * speedVariation;
+                
+                // Create star
+                const star = document.createElement('div');
+                star.className = 'galaxy-star';
+                star.style.width = Math.random() * 1.3 + 0.4 + 'px';
+                star.style.height = star.style.width;
+                star.style.opacity = Math.random() * 0.6 + 0.3;
+                
+                // Twinkle
+                const twinkleSpeed = Math.random() * 2 + 2;
+                star.style.animation = `twinkle ${twinkleSpeed}s infinite ease-in-out`;
+                star.style.animationDelay = Math.random() * 3 + 's';
+                
+                // Position star at starting point of ellipse
+                const startX = Math.cos(startAngle * Math.PI / 180) * radiusX;
+                const startY = Math.sin(startAngle * Math.PI / 180) * radiusY;
+                star.style.left = startX + 'px';
+                star.style.top = startY + 'px';
+                
+                orbit.appendChild(star);
+                
+                // Create unique wobbly elliptical animation for each star
+                const animName = `wobble-orbit-${Date.now()}-${i}`;
+                
+                // Add slight wobble to the orbit path
+                const wobbleAmount = 5 + Math.random() * 10; // 5-15px wobble
+                
+                const keyframes = `
+                    @keyframes ${animName} {
+                        0% {
+                            transform: translate(${startX}px, ${startY}px);
+                        }
+                        25% {
+                            transform: translate(
+                                ${Math.cos((startAngle + 90) * Math.PI / 180) * radiusX + (Math.random() - 0.5) * wobbleAmount}px,
+                                ${Math.sin((startAngle + 90) * Math.PI / 180) * radiusY + (Math.random() - 0.5) * wobbleAmount}px
+                            );
+                        }
+                        50% {
+                            transform: translate(
+                                ${Math.cos((startAngle + 180) * Math.PI / 180) * radiusX + (Math.random() - 0.5) * wobbleAmount}px,
+                                ${Math.sin((startAngle + 180) * Math.PI / 180) * radiusY + (Math.random() - 0.5) * wobbleAmount}px
+                            );
+                        }
+                        75% {
+                            transform: translate(
+                                ${Math.cos((startAngle + 270) * Math.PI / 180) * radiusX + (Math.random() - 0.5) * wobbleAmount}px,
+                                ${Math.sin((startAngle + 270) * Math.PI / 180) * radiusY + (Math.random() - 0.5) * wobbleAmount}px
+                            );
+                        }
+                        100% {
+                            transform: translate(${startX}px, ${startY}px);
+                        }
+                    }
+                `;
+                
+                const styleEl = document.createElement('style');
+                styleEl.textContent = keyframes;
+                document.head.appendChild(styleEl);
+                
+                orbit.style.animation = `${animName} ${orbitSpeed}s ease-in-out infinite`;
+                
+                galaxyElement.appendChild(orbit);
+            }
+        }
+        
+        // Create three galaxies
+        createGalaxy(document.querySelector('.galaxy-1'), 70);
+        createGalaxy(document.querySelector('.galaxy-2'), 60);
+        createGalaxy(document.querySelector('.galaxy-3'), 50);
+        
+        // Create shooting stars occasionally
+        function createShootingStar() {
+            const shootingStar = document.createElement('div');
+            shootingStar.className = 'shooting-star';
+            shootingStar.style.left = Math.random() * 50 + '%';
+            shootingStar.style.top = Math.random() * 50 + '%';
+            starfield.appendChild(shootingStar);
+            
+            setTimeout(() => {
+                shootingStar.remove();
+            }, 2000);
+        }
+        
+        setInterval(() => {
+            if (Math.random() > 0.5) {
+                createShootingStar();
+            }
+        }, Math.random() * 5000 + 3000);
+        
+        // Scroll animations
+        const fadeElements = document.querySelectorAll('.fade-in');
+        
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+        
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach((entry, index) => {
+                if (entry.isIntersecting) {
+                    setTimeout(() => {
+                        entry.target.classList.add('visible');
+                    }, index * 100);
+                }
+            });
+        }, observerOptions);
+        
+        fadeElements.forEach(el => observer.observe(el));
+        
+        // Make first elements visible immediately
+        setTimeout(() => {
+            document.querySelectorAll('.fade-in').forEach((el, i) => {
+                if (i < 2) el.classList.add('visible');
+            });
+        }, 100);
+    </script>
 </body>
 </html>
