@@ -26,7 +26,7 @@
         
         /* Starfield canvas - fixed background */
         #starfield-canvas {
-            position: fixed;
+            position: fixed; /* Back to fixed */
             top: 0;
             left: 0;
             width: 100%;
@@ -201,7 +201,7 @@
             background: black;
             opacity: 0;
             pointer-events: none;
-            z-index: 5;
+            z-index: 0; /* Below canvas so explosion is visible */
         }
         
         .genesis-text {
@@ -229,14 +229,12 @@
         }
         
         #tap-prompt {
-            position: fixed;
-            bottom: 10%;
+            position: absolute;
             left: 50%;
             transform: translateX(-50%);
             font-size: 1.2em;
-            color: rgba(255, 255, 255, 0.6);
+            color: white;
             opacity: 0;
-            animation: pulse 2s ease-in-out infinite;
             z-index: 7;
             cursor: pointer;
             user-select: none;
@@ -344,18 +342,125 @@
             </div>
             
             <div class="genesis-text verse" id="verse-2" style="top: 140vh;">
-                Then God said: Let there be light
+                ...God said, "Let there be light,"
             </div>
             
-            <div class="genesis-text verse" id="verse-3" style="top: 200vh;">
-                and there was light
-            </div>
+            <div id="tap-prompt" style="top: 180vh;">tap or click</div>
             
-            <div id="tap-prompt">tap or click</div>
+            <div class="genesis-text verse" id="verse-3" style="top: 200vh; opacity: 0; display: none;">
+                ...and there was light.
+            </div>
         </section>
     </div>
     
     <script>
+        // ===================================================================
+        // EXPLOSION SYSTEM - Single pixel → UAP → particles → white expansion
+        // ===================================================================
+        
+        let explosionActive = false;
+        let explosionTimer = 0;
+        let explosionParticles = [];
+        let centerPoint = { size: 0, opacity: 0 }; // The expanding white center
+        let whiteExpansionRadius = 0;
+        let explosionCompleted = false;
+        let explosionScrollY = 0; // Store where user was when explosion triggered
+        let explosionCenterX = 0; // Store explosion center X
+        let explosionCenterY = 0; // Store explosion center Y
+        
+        // Particle class - leads the white expansion
+        class ExplosionParticle {
+            constructor(x, y, index) {
+                this.x = x;
+                this.y = y;
+                const angle = (Math.PI * 2 * index) / 200; // Evenly distributed
+                const speed = 400 + Math.random() * 200;
+                this.vx = Math.cos(angle) * speed;
+                this.vy = Math.sin(angle) * speed;
+                this.size = 3 + Math.random() * 3;
+                this.life = 2; // Live 2 seconds
+                this.maxLife = 2;
+            }
+            
+            update(dt) {
+                this.x += this.vx * dt;
+                this.y += this.vy * dt;
+                this.life -= dt;
+            }
+            
+            render(ctx) {
+                const alpha = Math.min(1, this.life / this.maxLife);
+                ctx.fillStyle = 'white';
+                ctx.globalAlpha = alpha;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.globalAlpha = 1;
+            }
+        }
+        
+        function triggerExplosion() {
+            if (explosionActive) return;
+            
+            console.log("=== EXPLOSION TRIGGERED ===");
+            explosionActive = true;
+            explosionTimer = 0;
+            explosionParticles = [];
+            centerPoint = { size: 0, opacity: 0 };
+            whiteExpansionRadius = 0;
+            
+            // FORCE explosion WAY BELOW the viewport edge
+            explosionCenterX = canvas.width / 2;
+            explosionCenterY = canvas.height + 300; // 300px BELOW bottom edge
+            
+            console.log(`💥 Explosion WAY BELOW viewport at: ${explosionCenterX.toFixed(0)}, ${explosionCenterY.toFixed(0)}`);
+            console.log(`💥 Canvas height: ${canvas.height}, explosion ${explosionCenterY - canvas.height}px BELOW bottom`);
+            
+            // Save current scroll position
+            explosionScrollY = window.scrollY;
+            
+            // Hide tap prompt and verse 2
+            tapPrompt.style.opacity = 0;
+            tapPrompt.style.pointerEvents = 'none';
+            const verse2 = document.getElementById('verse-2');
+            verse2.style.opacity = 0;
+            
+            // HIDE STARGAZING MESSAGE during explosion  
+            const stargazingMsg = document.getElementById('stargazing-message');
+            if (stargazingMsg) {
+                stargazingMsg.style.opacity = 0;
+            }
+            
+            // Keep black overlay visible
+            fadeOverlay.style.opacity = 1;
+        }
+        
+        // Click/tap handler - ANYWHERE on screen when tap prompt is visible
+        document.addEventListener('click', (e) => {
+            console.log("CLICK DETECTED", {
+                tapPromptOpacity: tapPrompt.style.opacity,
+                tapPromptPointerEvents: tapPrompt.style.pointerEvents,
+                explosionActive: explosionActive,
+                explosionCompleted: explosionCompleted
+            });
+            
+            // Trigger if tap prompt is visible OR if we're in genesis section and not completed
+            if ((tapPrompt.style.opacity > 0 || parseFloat(tapPrompt.style.opacity) > 0) && !explosionCompleted) {
+                console.log("CONDITIONS MET - TRIGGERING EXPLOSION");
+                triggerExplosion();
+            } else {
+                console.log("CONDITIONS NOT MET - IGNORING CLICK");
+            }
+        });
+        
+        document.addEventListener('touchstart', (e) => {
+            console.log("TOUCH DETECTED");
+            if ((tapPrompt.style.opacity > 0 || parseFloat(tapPrompt.style.opacity) > 0) && !explosionCompleted) {
+                e.preventDefault();
+                triggerExplosion();
+            }
+        });
+        
         // ===================================================================
         // STARFIELD SYSTEM (reusing your existing code with enhancements)
         // ===================================================================
@@ -364,7 +469,7 @@
         const ctx = canvas.getContext('2d');
         
         canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
+        canvas.height = window.innerHeight; // Back to single viewport
         
         // Star system
         const stars = [];
@@ -653,6 +758,19 @@
             const scrollY = window.scrollY;
             const windowHeight = window.innerHeight;
             
+            // Prevent scrolling past tap prompt until explosion completes
+            if (!explosionCompleted && !explosionActive) {
+                const tapPromptElement = document.getElementById('tap-prompt');
+                const tapPromptRect = tapPromptElement.getBoundingClientRect();
+                const tapPromptAbsoluteY = tapPromptRect.top + scrollY;
+                const maxScroll = tapPromptAbsoluteY - (windowHeight / 2) + 100; // Stop slightly after tap prompt centers
+                
+                if (scrollY > maxScroll) {
+                    window.scrollTo(0, maxScroll);
+                    return;
+                }
+            }
+            
             // Calculate which section we're in
             const declarationEnd = windowHeight;
             const stargazingEnd = declarationEnd + windowHeight * 2;
@@ -661,37 +779,59 @@
             // Update stargazing messages
             updateStargazingMessage();
             
-            // Fade to black as we enter genesis section
-            if (scrollY > genesisStart) {
+            // Fade to black as we enter genesis section (ONLY if explosion hasn't happened)
+            if (scrollY > genesisStart && !explosionCompleted) {
                 const fadeProgress = Math.min(1, (scrollY - genesisStart) / (windowHeight * 0.5));
                 fadeOverlay.style.opacity = fadeProgress;
                 
-                // Show genesis verses - FIXED: max opacity in CENTER of scroll range
+                // Show genesis verses - max opacity in CENTER, fade in/out (ONLY before explosion)
+                if (!explosionCompleted) {
                 const verses = document.querySelectorAll('.genesis-text');
                 verses.forEach((verse) => {
-                    const verseTop = parseFloat(verse.style.top);
-                    const verseScrollPos = genesisStart + (verseTop / 100) * windowHeight;
-                    const distance = Math.abs(scrollY + windowHeight / 2 - verseScrollPos); // Center of viewport
+                    // Skip verse 3 if it hasn't been revealed yet
+                    if (verse.id === 'verse-3' && verse.style.display === 'none') {
+                        return;
+                    }
                     
-                    // Max opacity when verse is in center of screen
-                    if (distance < windowHeight * 0.3) {
-                        verse.style.opacity = 1 - (distance / (windowHeight * 0.3));
+                    // Get verse's absolute position in the document
+                    const verseRect = verse.getBoundingClientRect();
+                    const verseAbsoluteY = verseRect.top + scrollY;
+                    
+                    // Distance from CENTER of viewport to verse position
+                    const viewportCenter = scrollY + (windowHeight / 2);
+                    const distance = Math.abs(viewportCenter - verseAbsoluteY);
+                    
+                    // Fade in/out range - visible within 40% of viewport height from center
+                    const fadeRange = windowHeight * 0.4;
+                    
+                    if (distance < fadeRange) {
+                        // Closer to center = higher opacity
+                        const opacity = 1 - (distance / fadeRange);
+                        verse.style.opacity = opacity;
                     } else {
                         verse.style.opacity = 0;
                     }
                 });
                 
-                // Show tap prompt ONLY at very end (near last verse + fully faded)
-                const lastVersePos = genesisStart + 2 * windowHeight;
-                const distanceToEnd = scrollY - lastVersePos;
+                // Show tap prompt like verses - fade based on center position with slow flash
+                const tapPromptElement = document.getElementById('tap-prompt');
+                const tapPromptRect = tapPromptElement.getBoundingClientRect();
+                const tapPromptAbsoluteY = tapPromptRect.top + scrollY;
+                const viewportCenter = scrollY + (windowHeight / 2);
+                const distanceToTapPrompt = Math.abs(viewportCenter - tapPromptAbsoluteY);
                 
-                // Only show if we're past the last verse AND fade is complete
-                if (distanceToEnd > windowHeight * 0.2 && fadeOverlay.style.opacity >= 0.95) {
-                    tapPrompt.style.opacity = 1;
+                const fadeRange = windowHeight * 0.4;
+                
+                if (distanceToTapPrompt < fadeRange) {
+                    const baseOpacity = 1 - (distanceToTapPrompt / fadeRange);
+                    // Slow flash between 0 and max opacity
+                    const flashCycle = Math.sin(time * 1.5) * 0.5 + 0.5; // 0 to 1
+                    tapPrompt.style.opacity = baseOpacity * flashCycle * 0.5; // Flash to 50% of base
                     tapPrompt.style.pointerEvents = 'auto';
                 } else {
                     tapPrompt.style.opacity = 0;
                     tapPrompt.style.pointerEvents = 'none';
+                }
                 }
             } else {
                 fadeOverlay.style.opacity = 0;
@@ -712,9 +852,16 @@
             // Update stargazing message timer
             updateStargazingMessage();
             
-            // Clear canvas
-            ctx.fillStyle = '#0f1f38';
+            // Clear canvas - use BLACK if explosion is active and early, otherwise space blue
+            if (explosionActive && explosionTimer < 2.5) {
+                ctx.fillStyle = 'black'; // Black background for explosion
+            } else {
+                ctx.fillStyle = '#0f1f38'; // Normal space blue
+            }
             ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Render stars (ONLY if explosion isn't active OR we're past the white expansion phase)
+            if (!explosionActive || explosionTimer >= 3.5) {
             
             // Render stars
             stars.forEach(star => {
@@ -805,6 +952,169 @@
                     ctx.arc(uap.x, uap.y, 3, 0, Math.PI * 2);
                     ctx.fill();
                     ctx.shadowBlur = 0;
+                }
+            }
+            
+            } // End star rendering
+            
+            // ===================================================================
+            // EXPLOSION SEQUENCE
+            // ===================================================================
+            if (explosionActive) {
+                explosionTimer += 0.016;
+                
+                // Use stored tap prompt position as center
+                const centerX = explosionCenterX;
+                const centerY = explosionCenterY;
+                
+                console.log(`🔥 EXPLOSION ACTIVE - Timer: ${explosionTimer.toFixed(3)}s, Center: ${centerX.toFixed(0)},${centerY.toFixed(0)}`);
+                
+                // Phase 1: Single pixel appears and grows to UAP size (0-0.5s)
+                if (explosionTimer < 0.5) {
+                    const progress = explosionTimer / 0.5;
+                    centerPoint.size = 1 + (progress * 5); // 1px to 6px (bigger, more visible)
+                    centerPoint.opacity = 1;
+                    
+                    // DEBUG: BRIGHT GREEN CROSSHAIR at explosion center
+                    ctx.strokeStyle = 'lime';
+                    ctx.lineWidth = 3;
+                    // Vertical line
+                    ctx.beginPath();
+                    ctx.moveTo(centerX, centerY - 100);
+                    ctx.lineTo(centerX, centerY + 100);
+                    ctx.stroke();
+                    // Horizontal line
+                    ctx.beginPath();
+                    ctx.moveTo(centerX - 100, centerY);
+                    ctx.lineTo(centerX + 100, centerY);
+                    ctx.stroke();
+                    
+                    // DEBUG: Giant red square to prove we're rendering
+                    ctx.fillStyle = 'red';
+                    ctx.fillRect(centerX - 50, centerY - 50, 100, 100);
+                    
+                    // SUPER BRIGHT WHITE with glow
+                    ctx.fillStyle = 'white';
+                    ctx.globalAlpha = 1;
+                    ctx.shadowBlur = 20 * progress; // Growing glow
+                    ctx.shadowColor = 'white';
+                    ctx.beginPath();
+                    ctx.arc(centerX, centerY, centerPoint.size, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    // Extra outer glow
+                    ctx.globalAlpha = 0.5;
+                    ctx.shadowBlur = 40 * progress;
+                    ctx.beginPath();
+                    ctx.arc(centerX, centerY, centerPoint.size * 2, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    // HUGE white circle for testing
+                    ctx.globalAlpha = 1;
+                    ctx.shadowBlur = 0;
+                    ctx.fillStyle = 'cyan';
+                    ctx.beginPath();
+                    ctx.arc(centerX, centerY, 50, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    ctx.shadowBlur = 0;
+                    ctx.globalAlpha = 1;
+                    
+                    console.log(`⚪ Phase 1 - Pixel growing: ${centerPoint.size.toFixed(2)}px at timer ${explosionTimer.toFixed(3)}s`);
+                }
+                // Phase 2: UAP explodes - 200 particles burst out (0.5-0.7s)
+                else if (explosionTimer >= 0.5 && explosionTimer < 0.7) {
+                    console.log(`💥 Phase 2 - Explosion phase at timer ${explosionTimer.toFixed(3)}s`);
+                    
+                    if (explosionParticles.length === 0) {
+                        // Create 200 particles evenly distributed
+                        for (let i = 0; i < 200; i++) {
+                            explosionParticles.push(new ExplosionParticle(centerX, centerY, i));
+                        }
+                        console.log("💥 200 particles created!");
+                    }
+                    
+                    // DEBUG: Green square to show we're in phase 2
+                    ctx.fillStyle = 'green';
+                    ctx.fillRect(centerX - 100, centerY - 100, 200, 200);
+                    
+                    // Show UAP one more frame before particles take over
+                    ctx.fillStyle = 'white';
+                    ctx.shadowBlur = 15;
+                    ctx.shadowColor = 'white';
+                    ctx.beginPath();
+                    ctx.arc(centerX, centerY, 3, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.shadowBlur = 0;
+                }
+                // Phase 3: Particles fly + white center starts expanding (0.7-2.5s)
+                else if (explosionTimer >= 0.7 && explosionTimer < 2.5) {
+                    const expandProgress = (explosionTimer - 0.7) / 1.8;
+                    // Exponential expansion to cover screen
+                    const maxRadius = Math.sqrt(Math.pow(canvas.width, 2) + Math.pow(canvas.height, 2));
+                    whiteExpansionRadius = Math.pow(expandProgress, 1.5) * maxRadius;
+                    
+                    // White expanding circle first
+                    ctx.fillStyle = 'white';
+                    ctx.beginPath();
+                    ctx.arc(centerX, centerY, whiteExpansionRadius, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    // Particles render on top, leading the expansion
+                    explosionParticles.forEach(particle => {
+                        particle.update(0.016);
+                        particle.render(ctx);
+                    });
+                    
+                    console.log(`Expansion radius: ${whiteExpansionRadius.toFixed(0)}px`);
+                }
+                // Phase 4: Full white screen, fade black overlay (2.5-3.5s)
+                else if (explosionTimer >= 2.5 && explosionTimer < 3.5) {
+                    // Fill entire screen with white
+                    ctx.fillStyle = 'white';
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    
+                    // Fade black overlay to 0
+                    const fadeProgress = (explosionTimer - 2.5) / 1;
+                    fadeOverlay.style.opacity = 1 - fadeProgress;
+                    
+                    console.log(`Black fade: ${fadeOverlay.style.opacity}`);
+                }
+                // Phase 5: White fades to reveal stars, show verse 3 (3.5-5.5s)
+                else if (explosionTimer >= 3.5 && explosionTimer < 5.5) {
+                    const fadeProgress = (explosionTimer - 3.5) / 2;
+                    const whiteAlpha = 1 - fadeProgress;
+                    
+                    // White overlay fading over stars
+                    ctx.fillStyle = 'white';
+                    ctx.globalAlpha = whiteAlpha;
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    ctx.globalAlpha = 1;
+                    
+                    // Show verse 3 at 4s
+                    if (explosionTimer >= 4) {
+                        const verse3 = document.getElementById('verse-3');
+                        verse3.style.display = 'block';
+                        verse3.style.opacity = 1;
+                        verse3.style.top = '50vh'; // Center of screen
+                    }
+                }
+                // Phase 6: Complete (5.5s+)
+                else if (explosionTimer >= 5.5) {
+                    explosionActive = false;
+                    explosionCompleted = true;
+                    fadeOverlay.style.opacity = 0; // Lock at 0
+                    
+                    const verse3 = document.getElementById('verse-3');
+                    verse3.style.display = 'block';
+                    verse3.style.opacity = 1;
+                    
+                    // Hide verses 1, 2 and tap prompt permanently
+                    document.getElementById('verse-1').style.display = 'none';
+                    document.getElementById('verse-2').style.display = 'none';
+                    tapPrompt.style.display = 'none';
+                    
+                    console.log("=== UNIVERSE CREATED - GENESIS COMPLETE ===");
                 }
             }
             
