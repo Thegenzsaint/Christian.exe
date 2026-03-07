@@ -272,26 +272,14 @@
             transform: translate(-50%, -50%);
             font-size: 2.5em;
             font-style: italic;
-            color: rgba(255, 255, 255, 0.3);
+            color: rgba(255, 255, 255, 1);
             text-align: center;
             opacity: 0;
-            transition: opacity 3s ease-in-out;
+            transition: none;
             z-index: 3;
             pointer-events: none;
             font-weight: 300;
             letter-spacing: 2px;
-            animation: breathe 4s ease-in-out infinite;
-        }
-        
-        @keyframes breathe {
-            0%, 100% { 
-                opacity: 0.29;
-                font-size: 2.49em;
-            }
-            50% { 
-                opacity: 0.30;
-                font-size: 2.51em;
-            }
         }
     </style>
 </head>
@@ -515,14 +503,16 @@
         const tapPrompt = document.getElementById('tap-prompt');
         const stargazingMessage = document.getElementById('stargazing-message');
         
-        // Stargazing message rotation
+        // SIMPLIFIED - JUST TEST MESSAGE TRANSITION + BREATHING
         const messages = ["Stargaze with me for a moment...", "Breathe"];
         let currentMessageIndex = 0;
         let messageTimer = 0;
-        let messageVisible = false;
-        let messageFadingOut = false;
-        let fadeOutTimer = 0;
-        let manualOpacity = 1; // Track manual opacity separate from CSS
+        let inStargazingSection = false;
+        let isTransitioning = false;
+        let transitionTimer = 0;
+        let currentOpacity = 0;
+        let breatheTimer = 0; // For breathing animation
+        let entryDelay = 0; // Delay before showing message on entry
         
         function updateStargazingMessage() {
             const scrollY = window.scrollY;
@@ -530,98 +520,131 @@
             const declarationEnd = windowHeight;
             const stargazingEnd = declarationEnd + windowHeight * 2;
             
-            // Only show messages in stargazing section
-            if (scrollY > declarationEnd && scrollY < stargazingEnd) {
-                
-                // Calculate vertical position based on scroll progress through stargazing section
-                const stargazingProgress = (scrollY - declarationEnd) / (stargazingEnd - declarationEnd);
-                const verticalOffset = stargazingProgress * 30; // Move up 30% of viewport as user scrolls
-                stargazingMessage.style.top = `${50 - verticalOffset}%`;
-                
-                // Fade out as approaching end of stargazing section (last 20%)
-                if (stargazingProgress > 0.8) {
-                    const fadeProgress = (stargazingProgress - 0.8) / 0.2; // 0 to 1 in last 20%
-                    manualOpacity = 1 - fadeProgress;
-                } else {
-                    manualOpacity = 1;
+            const nowInStargazing = (scrollY > declarationEnd && scrollY < stargazingEnd);
+            
+            // Update breathing animation timer
+            breatheTimer += 0.016;
+            
+            // Breathing cycle - 4 seconds (human breathing rhythm)
+            const breatheCycle = (Math.sin(breatheTimer * Math.PI / 2) + 1) / 2; // 0 to 1
+            const breatheOpacity = 0.40 + (breatheCycle * 0.05); // 0.40 to 0.45, max at 0.45
+            const breatheSize = 2.48 + (breatheCycle * 0.04); // 2.48em to 2.52em
+            
+            // Entering stargazing section
+            if (nowInStargazing && !inStargazingSection) {
+                console.log("ENTERING stargazing section");
+                inStargazingSection = true;
+                currentMessageIndex = 0;
+                messageTimer = 0;
+                isTransitioning = false;
+                currentOpacity = 0; // Start at 0
+                entryDelay = 0.3; // Wait 0.3 seconds before fading in
+                stargazingMessage.textContent = messages[0];
+                stargazingMessage.style.top = '50%';
+                stargazingMessage.style.opacity = 0; // Explicitly start hidden
+            }
+            
+            // Left stargazing section
+            if (!nowInStargazing) {
+                if (inStargazingSection) {
+                    console.log("LEFT stargazing section");
+                    inStargazingSection = false;
                 }
+                stargazingMessage.style.opacity = 0;
+                stargazingMessage.style.top = '50%';
+                messageTimer = 0;
+                isTransitioning = false;
+                return;
+            }
+            
+            // Not in section - skip
+            if (!nowInStargazing) return;
+            
+            // Calculate scroll-based fade multiplier
+            const stargazingProgress = (scrollY - declarationEnd) / (stargazingEnd - declarationEnd);
+            
+            let scrollFadeMultiplier = 1.0;
+            
+            // Fade in during first 15% when scrolling down
+            if (stargazingProgress < 0.15) {
+                scrollFadeMultiplier = stargazingProgress / 0.15;
+            }
+            // Fade out during last 40% when scrolling up
+            else if (stargazingProgress > 0.6) {
+                scrollFadeMultiplier = 1 - ((stargazingProgress - 0.6) / 0.4);
+            }
+            
+            // Move message up as scrolling
+            const verticalOffset = stargazingProgress * 30;
+            stargazingMessage.style.top = `${50 - verticalOffset}%`;
+            
+            // If transitioning, handle that
+            if (isTransitioning) {
+                transitionTimer += 0.016;
                 
-                // Handle fade out/in transition between messages
-                if (messageFadingOut) {
-                    fadeOutTimer += 0.016;
-                    
-                    // Fade out current message (3 seconds)
-                    if (fadeOutTimer < 3) {
-                        const fadeProgress = fadeOutTimer / 3;
-                        stargazingMessage.style.opacity = (1 - fadeProgress) * manualOpacity;
-                    }
-                    // Wait at 0 opacity
-                    else if (fadeOutTimer < 3.5) {
-                        stargazingMessage.style.opacity = 0;
-                    }
-                    // Change text
-                    else if (fadeOutTimer < 3.6) {
-                        currentMessageIndex = (currentMessageIndex + 1) % messages.length;
-                        stargazingMessage.textContent = messages[currentMessageIndex];
-                    }
-                    // Fade in new message (3 seconds)
-                    else if (fadeOutTimer < 6.6) {
-                        const fadeProgress = (fadeOutTimer - 3.6) / 3;
-                        stargazingMessage.style.opacity = fadeProgress * manualOpacity;
-                    }
-                    // Transition complete
-                    else {
-                        messageFadingOut = false;
-                        fadeOutTimer = 0;
-                        messageTimer = 0;
-                        stargazingMessage.style.opacity = manualOpacity;
-                    }
-                } else {
-                    // Apply manual opacity (for section fade out)
-                    if (!messageFadingOut) {
-                        stargazingMessage.style.opacity = manualOpacity;
-                    }
-                    
-                    messageTimer += 0.016;
-                    
-                    // Start fade out after 15 seconds
-                    if (messageTimer > 15) {
-                        messageFadingOut = true;
-                        fadeOutTimer = 0;
-                    }
+                // Phase 1: Fade out (0 to 2 seconds)
+                if (transitionTimer < 2) {
+                    currentOpacity = 1 - (transitionTimer / 2);
+                    stargazingMessage.style.opacity = currentOpacity * breatheOpacity * scrollFadeMultiplier;
+                    stargazingMessage.style.fontSize = breatheSize + 'em';
+                    console.log(`Fading out: opacity = ${(currentOpacity * breatheOpacity * scrollFadeMultiplier).toFixed(2)}`);
                 }
-                
-                // First entry into section
-                if (!messageVisible) {
-                    messageVisible = true;
-                    currentMessageIndex = 0; // Always start with "Stargaze with me for a moment..."
-                    stargazingMessage.textContent = messages[currentMessageIndex];
-                    messageTimer = 0;
-                    messageFadingOut = false;
-                    fadeOutTimer = 0;
-                    
-                    // Fade in from 0
-                    let fadeIn = 0;
-                    const fadeInterval = setInterval(() => {
-                        fadeIn += 0.05;
-                        if (fadeIn >= 1) {
-                            stargazingMessage.style.opacity = manualOpacity;
-                            clearInterval(fadeInterval);
-                        } else {
-                            stargazingMessage.style.opacity = fadeIn * manualOpacity;
-                        }
-                    }, 50);
-                }
-            } else {
-                // Left stargazing section
-                if (messageVisible) {
-                    messageVisible = false;
+                // Phase 2: Wait (2 to 3 seconds)
+                else if (transitionTimer < 3) {
+                    currentOpacity = 0;
                     stargazingMessage.style.opacity = 0;
-                    stargazingMessage.style.top = '50%'; // Reset position
-                    messageFadingOut = false;
-                    fadeOutTimer = 0;
+                    console.log("Waiting at 0 opacity");
+                }
+                // Phase 3: Change text (exactly at 3 seconds)
+                else if (transitionTimer >= 3 && transitionTimer < 3.02) {
+                    currentMessageIndex = (currentMessageIndex + 1) % messages.length;
+                    stargazingMessage.textContent = messages[currentMessageIndex];
+                    console.log(`Changed to: "${messages[currentMessageIndex]}"`);
+                }
+                // Phase 4: Fade in (3 to 5 seconds)
+                else if (transitionTimer < 5) {
+                    currentOpacity = (transitionTimer - 3) / 2;
+                    stargazingMessage.style.opacity = currentOpacity * breatheOpacity * scrollFadeMultiplier;
+                    stargazingMessage.style.fontSize = breatheSize + 'em';
+                    console.log(`Fading in: opacity = ${(currentOpacity * breatheOpacity * scrollFadeMultiplier).toFixed(2)}`);
+                }
+                // Phase 5: Complete (5+ seconds)
+                else {
+                    currentOpacity = 1;
+                    stargazingMessage.style.opacity = breatheOpacity * scrollFadeMultiplier;
+                    stargazingMessage.style.fontSize = breatheSize + 'em';
+                    isTransitioning = false;
+                    transitionTimer = 0;
                     messageTimer = 0;
-                    manualOpacity = 1;
+                    console.log("Transition complete - back to normal display");
+                }
+            }
+            // Normal display - count to 10 seconds (shorter for testing)
+            else {
+                messageTimer += 0.016;
+                
+                // Handle entry delay
+                if (entryDelay > 0) {
+                    entryDelay -= 0.016;
+                    stargazingMessage.style.opacity = 0; // Stay hidden during delay
+                }
+                // Smooth fade in currentOpacity from 0 to 1 over first second
+                else if (currentOpacity < 1) {
+                    currentOpacity += 0.016; // Fade in over ~1 second
+                    currentOpacity = Math.min(1, currentOpacity);
+                    stargazingMessage.style.opacity = currentOpacity * breatheOpacity * scrollFadeMultiplier;
+                    stargazingMessage.style.fontSize = breatheSize + 'em';
+                }
+                // Normal display with breathing
+                else {
+                    stargazingMessage.style.opacity = currentOpacity * breatheOpacity * scrollFadeMultiplier;
+                    stargazingMessage.style.fontSize = breatheSize + 'em';
+                }
+                
+                if (messageTimer >= 10) {
+                    console.log(`\n=== STARTING TRANSITION from "${messages[currentMessageIndex]}" ===`);
+                    isTransitioning = true;
+                    transitionTimer = 0;
                 }
             }
         }
