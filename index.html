@@ -27,13 +27,13 @@
             font-family: 'Georgia', 'Times New Roman', serif;
             line-height: 1.6;
             color: #2c3e50;
-            background: #0a1628;
-            min-height: 100vh;
+            background: #0f1f38;
+            min-height: 150vh;
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
-            padding: 20px;
+            justify-content: flex-start;
+            padding: 40px 20px 100vh 20px;
             overflow-x: hidden;
             position: relative;
         }
@@ -141,6 +141,7 @@
             position: relative;
             z-index: 1;
             backdrop-filter: blur(10px);
+            margin: 20vh auto 40px auto;
         }
         
         h1 {
@@ -258,12 +259,24 @@
         }
         
         @media (max-width: 768px) {
+            body {
+                justify-content: flex-start;
+                padding: 20px 10px;
+            }
+            
             h1 {
-                font-size: 2.5em;
+                font-size: 2em;
+                letter-spacing: 0;
+            }
+            
+            .subtitle {
+                font-size: 1.1em;
             }
             
             .container {
-                padding: 40px 20px;
+                padding: 30px 15px;
+                margin: 20px auto;
+                max-width: 90%;
             }
             
             .buttons {
@@ -272,6 +285,15 @@
             
             .btn {
                 width: 100%;
+            }
+            
+            .description {
+                font-size: 0.95em;
+            }
+            
+            /* Make galaxies visible on mobile */
+            .galaxy {
+                opacity: 0.8;
             }
         }
     </style>
