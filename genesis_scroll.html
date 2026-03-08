@@ -201,7 +201,7 @@
             background: black;
             opacity: 0;
             pointer-events: none;
-            z-index: 0; /* Below canvas so explosion is visible */
+            z-index: 5; /* Above canvas (0) but below verse 3 (100) */
         }
         
         .genesis-text {
@@ -274,7 +274,7 @@
             text-align: center;
             opacity: 0;
             transition: none;
-            z-index: 3;
+            z-index: 2000; /* ABOVE EVERYTHING including verse 3 (1000) */
             pointer-events: none;
             font-weight: 300;
             letter-spacing: 2px;
@@ -405,29 +405,59 @@
             
             console.log("=== EXPLOSION TRIGGERED ===");
             
+            // Set permanent flag - scroll handler will NEVER touch verses again
+            window.explosionEverStarted = true;
+            
             // IMMEDIATELY lock black overlay at full opacity - don't let it fade during scroll
             fadeOverlay.style.opacity = 1;
             fadeOverlay.style.transition = 'none'; // No transition during scroll
             
-            // Hide tap prompt, verse 1, verse 2 - SHOW verse 3 immediately
+            // Hide ALL verses immediately - nothing flies by during scroll
             tapPrompt.style.opacity = 0;
             tapPrompt.style.pointerEvents = 'none';
-            document.getElementById('verse-1').style.display = 'none'; // Hide completely
+            document.getElementById('verse-1').style.opacity = 0;
             document.getElementById('verse-2').style.opacity = 0;
             
-            // SHOW verse 3 immediately (will be revealed after explosion)
-            const verse3 = document.getElementById('verse-3');
-            verse3.style.display = 'block';
-            verse3.style.opacity = 0; // Start hidden, will fade in during explosion
-            verse3.style.position = 'absolute';
-            verse3.style.top = '50vh';
-            verse3.style.zIndex = '20';
-            
-            // HIDE STARGAZING MESSAGE during explosion  
-            const stargazingMsg = document.getElementById('stargazing-message');
-            if (stargazingMsg) {
-                stargazingMsg.style.opacity = 0;
+            // SHOW verse 3 setup (will fade in slowly from black)
+            // CREATE IT FRESH and append to BODY (fixed positioning)
+            let verse3 = document.getElementById('verse-3-explosion');
+            if (!verse3) {
+                verse3 = document.createElement('div');
+                verse3.id = 'verse-3-explosion';
+                verse3.textContent = '...and there was light.';
+                verse3.style.position = 'fixed'; // FIXED during explosion so it's definitely visible
+                verse3.style.top = '70%'; // Lower third of screen
+                verse3.style.left = '50%';
+                verse3.style.transform = 'translate(-50%, -50%)';
+                verse3.style.textAlign = 'center';
+                verse3.style.fontSize = '2em';
+                verse3.style.lineHeight = '1.8';
+                verse3.style.color = 'white';
+                verse3.style.fontStyle = 'italic';
+                verse3.style.textShadow = `-1px -1px 0 rgba(255,255,255,0.5),
+                    1px -1px 0 rgba(255,255,255,0.5),
+                    -1px 1px 0 rgba(255,255,255,0.5),
+                    1px 1px 0 rgba(255,255,255,0.5),
+                    0 0 10px rgba(255,255,255,0.3)`;
+                verse3.style.zIndex = '1000';
+                verse3.style.opacity = 0;
+                verse3.style.display = 'block';
+                verse3.style.pointerEvents = 'none';
+                verse3.style.width = '80%';
+                verse3.style.maxWidth = '900px';
+                document.body.appendChild(verse3);
+                console.log("🔧 CREATED verse 3 as FIXED positioned element");
             }
+            
+            console.log("🔧 SETUP: Verse 3 styles set:", {
+                display: verse3.style.display,
+                opacity: verse3.style.opacity,
+                position: verse3.style.position,
+                zIndex: verse3.style.zIndex,
+                top: verse3.style.top
+            });
+            
+            // Don't hide stargazing message - let it stay
             
             // Scroll to where verse 1 is positioned AND center it in viewport
             // Genesis starts at 300vh, verse 1 is at top: 50vh within genesis
@@ -808,6 +838,19 @@
         let entryDelay = 0; // Delay before showing message on entry
         
         function updateStargazingMessage() {
+            // If explosion happened, fade in stargazing message when white fades (after 8s)
+            if (window.explosionEverStarted && explosionTimer >= 8) {
+                const fadeInProgress = Math.min(1, (explosionTimer - 8) / 2); // 0 to 1 over 2 seconds (8-10s)
+                stargazingMessage.style.opacity = fadeInProgress * 0.42;
+                return;
+            }
+            
+            // If explosion started but white hasn't faded yet, keep hidden
+            if (window.explosionEverStarted && explosionTimer < 8) {
+                stargazingMessage.style.opacity = 0;
+                return;
+            }
+            
             const scrollY = window.scrollY;
             const windowHeight = window.innerHeight;
             const declarationEnd = windowHeight;
@@ -843,8 +886,11 @@
                     console.log("LEFT stargazing section");
                     inStargazingSection = false;
                 }
-                stargazingMessage.style.opacity = 0;
-                stargazingMessage.style.top = '50%';
+                // Only hide if explosion hasn't started
+                if (!window.explosionEverStarted) {
+                    stargazingMessage.style.opacity = 0;
+                    stargazingMessage.style.top = '50%';
+                }
                 messageTimer = 0;
                 isTransitioning = false;
                 return;
@@ -954,11 +1000,17 @@
             // Start black fade BEFORE genesis so it's 100% when verse 1 is centered
             const blackFadeStart = genesisStart - (windowHeight * 0.15); // 285vh - starts 15vh earlier
             
-            // Update stargazing messages
-            updateStargazingMessage();
+            // Update stargazing messages (ONLY if explosion hasn't happened)
+            if (!window.explosionEverStarted) {
+                updateStargazingMessage();
+            } else {
+                // After explosion - just lock stargazing visible and don't touch it
+                stargazingMessage.style.opacity = 0.42;
+                stargazingMessage.style.zIndex = 2000;
+            }
             
-            // Show genesis verses whenever we're in or near genesis section (ONLY before explosion starts)
-            if (scrollY > (genesisStart - windowHeight) && !explosionCompleted && !explosionActive) {
+            // Show genesis verses whenever we're in or near genesis section (ONLY if explosion has NEVER started)
+            if (scrollY > (genesisStart - windowHeight) && !explosionCompleted && !explosionActive && !window.explosionEverStarted) {
                 const verses = document.querySelectorAll('.genesis-text');
                 verses.forEach((verse) => {
                     // Skip verse 3 if it hasn't been revealed yet
@@ -1031,19 +1083,21 @@
         function render() {
             time += 0.016; // ~60fps
             
-            // Update stargazing message timer
-            updateStargazingMessage();
+            // Update stargazing message timer (ONLY if explosion hasn't happened)
+            if (!window.explosionEverStarted) {
+                updateStargazingMessage();
+            }
             
-            // Clear canvas - use BLACK if explosion is active and early, otherwise darker space blue
-            if (explosionActive && explosionTimer < 2.5) {
-                ctx.fillStyle = 'black'; // Black background for explosion
+            // Clear canvas - use BLACK throughout explosion, otherwise darker space blue
+            if (explosionActive && explosionTimer < 8) {
+                ctx.fillStyle = 'black'; // Black background throughout explosion
             } else {
-                ctx.fillStyle = '#0a1628'; // Darker space blue (was #0f1f38)
+                ctx.fillStyle = '#0a1628'; // Darker space blue
             }
             ctx.fillRect(0, 0, canvas.width, canvas.height);
             
-            // Render stars (ONLY if explosion isn't active OR we're past the white expansion phase)
-            if (!explosionActive || explosionTimer >= 3.5) {
+            // Render stars (ONLY if explosion isn't active OR we're in the fade phase)
+            if (!explosionActive || explosionTimer >= 8) {
             
             // Render stars with PARALLAX
             const scrollY = window.scrollY;
@@ -1173,117 +1227,111 @@
                 
                 console.log(`🔥 EXPLOSION ACTIVE - Timer: ${explosionTimer.toFixed(3)}s, Center: ${centerX.toFixed(0)},${centerY.toFixed(0)}`);
                 
-                // Phase 1: Single pixel appears and grows to UAP size (0-0.5s)
-                if (explosionTimer < 0.5) {
-                    const progress = explosionTimer / 0.5;
-                    centerPoint.size = 1 + (progress * 5); // 1px to 6px (bigger, more visible)
-                    centerPoint.opacity = 1;
+                // ===== NEW EXPLOSION SEQUENCE =====
+                
+                // FORCE verses 1 & 2 hidden throughout explosion every frame
+                const verse1 = document.getElementById('verse-1');
+                const verse2 = document.getElementById('verse-2');
+                verse1.style.display = 'none';
+                verse1.style.opacity = 0;
+                verse2.style.display = 'none';
+                verse2.style.opacity = 0;
+                
+                // Phase 0: Verse 3 fades in slowly from black (0-2.5s)
+                if (explosionTimer < 2.5) {
+                    const verse3 = document.getElementById('verse-3-explosion');
+                    const fadeProgress = explosionTimer / 2.5; // 0 to 1 over 2.5 seconds
+                    verse3.style.opacity = fadeProgress;
+                    verse3.style.display = 'block';
                     
-                    // DEBUG: BRIGHT GREEN CROSSHAIR at explosion center
-                    ctx.strokeStyle = 'lime';
-                    ctx.lineWidth = 3;
-                    // Vertical line
-                    ctx.beginPath();
-                    ctx.moveTo(centerX, centerY - 100);
-                    ctx.lineTo(centerX, centerY + 100);
-                    ctx.stroke();
-                    // Horizontal line
-                    ctx.beginPath();
-                    ctx.moveTo(centerX - 100, centerY);
-                    ctx.lineTo(centerX + 100, centerY);
-                    ctx.stroke();
+                    console.log(`📝 Phase 0: Verse 3 opacity = ${fadeProgress.toFixed(2)}, display = ${verse3.style.display}`);
                     
-                    // DEBUG: Giant red square to prove we're rendering
-                    ctx.fillStyle = 'red';
-                    ctx.fillRect(centerX - 50, centerY - 50, 100, 100);
-                    
-                    // SUPER BRIGHT WHITE with glow
-                    ctx.fillStyle = 'white';
-                    ctx.globalAlpha = 1;
-                    ctx.shadowBlur = 20 * progress; // Growing glow
-                    ctx.shadowColor = 'white';
-                    ctx.beginPath();
-                    ctx.arc(centerX, centerY, centerPoint.size, 0, Math.PI * 2);
-                    ctx.fill();
-                    
-                    // Extra outer glow
-                    ctx.globalAlpha = 0.5;
-                    ctx.shadowBlur = 40 * progress;
-                    ctx.beginPath();
-                    ctx.arc(centerX, centerY, centerPoint.size * 2, 0, Math.PI * 2);
-                    ctx.fill();
-                    
-                    // HUGE white circle for testing
-                    ctx.globalAlpha = 1;
-                    ctx.shadowBlur = 0;
-                    ctx.fillStyle = 'cyan';
-                    ctx.beginPath();
-                    ctx.arc(centerX, centerY, 50, 0, Math.PI * 2);
-                    ctx.fill();
-                    
-                    ctx.shadowBlur = 0;
-                    ctx.globalAlpha = 1;
-                    
-                    console.log(`⚪ Phase 1 - Pixel growing: ${centerPoint.size.toFixed(2)}px at timer ${explosionTimer.toFixed(3)}s`);
+                    // Keep black overlay at 100% during fade-in
+                    fadeOverlay.style.opacity = 1;
                 }
-                // Phase 2: UAP explodes - 200 particles burst out (0.5-0.7s)
-                else if (explosionTimer >= 0.5 && explosionTimer < 0.7) {
-                    console.log(`💥 Phase 2 - Explosion phase at timer ${explosionTimer.toFixed(3)}s`);
+                // Phase 1: Small bright dot appears at center (2.5-3s)
+                else if (explosionTimer >= 2.5 && explosionTimer < 3) {
+                    const dotProgress = (explosionTimer - 2.5) / 0.5; // 0 to 1
+                    const dotSize = 2 + (dotProgress * 3); // Grows from 2px to 5px
                     
-                    if (explosionParticles.length === 0) {
-                        // Create 200 particles evenly distributed
-                        for (let i = 0; i < 200; i++) {
-                            explosionParticles.push(new ExplosionParticle(centerX, centerY, i));
-                        }
-                        console.log("💥 200 particles created!");
-                    }
+                    // Verse 3 at full opacity - STAYS FOREVER
+                    const verse3 = document.getElementById('verse-3-explosion');
+                    verse3.style.opacity = 1;
+                    verse3.style.display = 'block';
                     
-                    // DEBUG: Green square to show we're in phase 2
-                    ctx.fillStyle = 'green';
-                    ctx.fillRect(centerX - 100, centerY - 100, 200, 200);
+                    // Keep black overlay at 100%
+                    fadeOverlay.style.opacity = 1;
                     
-                    // Show UAP one more frame before particles take over
+                    // Bright white dot with glow
                     ctx.fillStyle = 'white';
                     ctx.shadowBlur = 15;
                     ctx.shadowColor = 'white';
                     ctx.beginPath();
-                    ctx.arc(centerX, centerY, 3, 0, Math.PI * 2);
+                    ctx.arc(centerX, centerY, dotSize, 0, Math.PI * 2);
                     ctx.fill();
                     ctx.shadowBlur = 0;
                 }
-                // Phase 3: Particles fly + white center starts expanding (0.7-2.5s)
-                else if (explosionTimer >= 0.7 && explosionTimer < 2.5) {
-                    const expandProgress = (explosionTimer - 0.7) / 1.8;
-                    // Exponential expansion to cover screen
-                    const maxRadius = Math.sqrt(Math.pow(canvas.width, 2) + Math.pow(canvas.height, 2));
-                    whiteExpansionRadius = Math.pow(expandProgress, 1.5) * maxRadius;
+                // Phase 2: Dot BREATHES - bigger, smaller, bigger (3-4.5s)
+                else if (explosionTimer >= 3 && explosionTimer < 4.5) {
+                    const breatheTime = explosionTimer - 3; // 0 to 1.5
+                    // Two breaths: 0-0.75s and 0.75-1.5s
+                    const breatheCycle = Math.sin(breatheTime * 2 * Math.PI / 0.75); // -1 to 1
+                    const dotSize = 5 + (breatheCycle * 3); // 2px to 8px pulsing
                     
-                    // White expanding circle first
+                    // Verse 3 STAYS visible
+                    const verse3 = document.getElementById('verse-3-explosion');
+                    verse3.style.opacity = 1;
+                    verse3.style.display = 'block';
+                    
+                    // Keep black overlay at 100%
+                    fadeOverlay.style.opacity = 1;
+                    
+                    // Pulsing white dot
+                    ctx.fillStyle = 'white';
+                    ctx.shadowBlur = 20 + (breatheCycle * 10);
+                    ctx.shadowColor = 'white';
+                    ctx.beginPath();
+                    ctx.arc(centerX, centerY, dotSize, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.shadowBlur = 0;
+                }
+                // Phase 3: BOOM - white expansion (4.5-7s)
+                else if (explosionTimer >= 4.5 && explosionTimer < 7) {
+                    const expandTime = explosionTimer - 4.5; // 0 to 2.5
+                    const maxRadius = Math.sqrt(Math.pow(canvas.width, 2) + Math.pow(canvas.height, 2));
+                    whiteExpansionRadius = Math.pow(expandTime / 2.5, 1.5) * maxRadius * 1.2;
+                    
+                    // Verse 3 STAYS visible
+                    const verse3 = document.getElementById('verse-3-explosion');
+                    verse3.style.opacity = 1;
+                    verse3.style.display = 'block';
+                    
+                    // Keep black overlay at 100%
+                    fadeOverlay.style.opacity = 1;
+                    
+                    // White circle expanding from center
                     ctx.fillStyle = 'white';
                     ctx.beginPath();
                     ctx.arc(centerX, centerY, whiteExpansionRadius, 0, Math.PI * 2);
                     ctx.fill();
-                    
-                    // Particles render on top, leading the expansion
-                    explosionParticles.forEach(particle => {
-                        particle.update(0.016);
-                        particle.render(ctx);
-                    });
-                    
-                    console.log(`Expansion radius: ${whiteExpansionRadius.toFixed(0)}px`);
                 }
-                // Phase 4: Full white screen, KEEP black overlay (2.5-3.5s)
-                else if (explosionTimer >= 2.5 && explosionTimer < 3.5) {
+                // Phase 4: Full white screen, KEEP black overlay (7-8s)
+                else if (explosionTimer >= 7 && explosionTimer < 8) {
                     // Fill entire screen with white
                     ctx.fillStyle = 'white';
                     ctx.fillRect(0, 0, canvas.width, canvas.height);
                     
+                    // Verse 3 STAYS visible
+                    const verse3 = document.getElementById('verse-3-explosion');
+                    verse3.style.opacity = 1;
+                    verse3.style.display = 'block';
+                    
                     // KEEP black overlay at full opacity
                     fadeOverlay.style.opacity = 1;
                 }
-                // Phase 5: White fades AND black fades together, reveal stars + verse 3 (3.5-5.5s)
-                else if (explosionTimer >= 3.5 && explosionTimer < 5.5) {
-                    const fadeProgress = (explosionTimer - 3.5) / 2;
+                // Phase 5: White fades AND black fades together, reveal stars (8-10s)
+                else if (explosionTimer >= 8 && explosionTimer < 10) {
+                    const fadeProgress = (explosionTimer - 8) / 2;
                     const whiteAlpha = 1 - fadeProgress;
                     
                     // White overlay fading over stars
@@ -1295,25 +1343,35 @@
                     // BLACK FADES WITH WHITE - both fade together
                     fadeOverlay.style.opacity = whiteAlpha;
                     
-                    // Show verse 3 at 4s - at SAME position as verse 1 was (scrollable, not fixed)
-                    if (explosionTimer >= 4) {
-                        const verse3 = document.getElementById('verse-3');
-                        verse3.style.display = 'block';
-                        verse3.style.position = 'absolute'; // Scrollable position like other verses
-                        verse3.style.top = '50vh'; // Same as verse 1
-                        verse3.style.zIndex = '20'; // Above everything
-                        verse3.style.opacity = Math.min(1, (explosionTimer - 4) * 2); // Fade in verse
-                    }
+                    // Verse 3 STAYS visible at full opacity FOREVER
+                    const verse3 = document.getElementById('verse-3-explosion');
+                    verse3.style.opacity = 1;
+                    verse3.style.display = 'block';
                 }
-                // Phase 6: Complete (5.5s+)
-                else if (explosionTimer >= 5.5) {
+                // Phase 6: Complete (10s+)
+                else if (explosionTimer >= 10) {
                     explosionActive = false;
                     explosionCompleted = true;
                     fadeOverlay.style.opacity = 0; // Lock at 0
                     
-                    const verse3 = document.getElementById('verse-3');
+                    const verse3 = document.getElementById('verse-3-explosion');
                     verse3.style.display = 'block';
                     verse3.style.opacity = 1;
+                    
+                    // KEEP IT FIXED - don't convert to absolute
+                    // Just lock it visible at 70% position
+                    verse3.style.position = 'fixed';
+                    verse3.style.top = '70%';
+                    verse3.style.zIndex = '1000';
+                    
+                    // LOCK STARGAZING MESSAGE VISIBLE
+                    stargazingMessage.style.display = 'block';
+                    stargazingMessage.style.opacity = 0.42;
+                    stargazingMessage.style.position = 'fixed';
+                    stargazingMessage.style.top = '20%';
+                    stargazingMessage.style.left = '50%';
+                    stargazingMessage.style.transform = 'translateX(-50%)';
+                    stargazingMessage.style.zIndex = 2000;
                     
                     // Hide verses 1, 2 and tap prompt permanently
                     document.getElementById('verse-1').style.display = 'none';
@@ -1321,6 +1379,7 @@
                     tapPrompt.style.display = 'none';
                     
                     console.log("=== UNIVERSE CREATED - GENESIS COMPLETE ===");
+                    console.log("🌟 Stargazing locked visible at opacity 0.42");
                 }
             }
             
