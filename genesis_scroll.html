@@ -1369,9 +1369,10 @@
                         // CREATE NEW VERSE 3 at 6s
                         let newVerse3 = document.getElementById('verse-3-absolute');
                         if (!newVerse3) {
-                            const currentScrollY = window.scrollY;
                             const windowHeight = window.innerHeight;
-                            const absoluteTop = currentScrollY + (windowHeight * 0.7);
+                            // Position based on where we'll AUTO-SCROLL to (155vh)
+                            const targetScrollY = windowHeight * 1.55; // 155vh - where we scroll during white flash
+                            const absoluteTop = targetScrollY + (windowHeight * 0.7); // 155vh + 70vh = 225vh
                             
                             newVerse3 = document.createElement('div');
                             newVerse3.id = 'verse-3-absolute';
@@ -1398,7 +1399,7 @@
                             newVerse3.style.maxWidth = '900px';
                             
                             document.getElementById('scroll-container').appendChild(newVerse3);
-                            console.log(`✅ Created NEW absolute verse 3 at ${absoluteTop}px at 6s`);
+                            console.log(`✅ Created NEW absolute verse 3 at ${absoluteTop}px (225vh - positioned for scroll to 155vh)`);
                         }
                     }
                     
@@ -1416,6 +1417,20 @@
                     // Fill entire screen with white
                     ctx.fillStyle = 'white';
                     ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    
+                    // AUTO-SCROLL during white flash - move up to just below stargazing
+                    if (!window.whiteFlashScrollDone) {
+                        const windowHeight = window.innerHeight;
+                        const targetScroll = windowHeight * 1.55; // 155vh - stargazing completely out of frame
+                        
+                        window.scrollTo({
+                            top: targetScroll,
+                            behavior: 'smooth'
+                        });
+                        
+                        window.whiteFlashScrollDone = true;
+                        console.log(`📜 Auto-scrolled to ${targetScroll}px during white flash`);
+                    }
                     
                     // Old verse already hidden in Phase 3, new verse already created
                     
