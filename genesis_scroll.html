@@ -1374,11 +1374,14 @@
                     ctx.fill();
                     ctx.shadowBlur = 0;
                 }
-                // Phase 3: BOOM - white expansion (4.5-7s)
+                // Phase 3: ULTIMATE BIG BANG - Reality Unfurls (4.5-7s)
                 else if (explosionTimer >= 4.5 && explosionTimer < 7) {
                     const expandTime = explosionTimer - 4.5; // 0 to 2.5
                     const maxRadius = Math.sqrt(Math.pow(canvas.width, 2) + Math.pow(canvas.height, 2));
-                    whiteExpansionRadius = Math.pow(expandTime / 2.5, 1.5) * maxRadius * 1.2;
+                    const expandProgress = expandTime / 2.5; // 0 to 1
+                    
+                    // Exponential expansion - like actual inflation
+                    whiteExpansionRadius = Math.pow(expandProgress, 1.2) * maxRadius * 1.3;
                     
                     // Keep verse 3 visible UNTIL 6 seconds, then swap
                     if (explosionTimer < 6) {
@@ -1430,11 +1433,114 @@
                     // Keep black overlay at 100%
                     fadeOverlay.style.opacity = 1;
                     
-                    // White circle expanding from center
-                    ctx.fillStyle = 'white';
+                    // ===== RAINBOW ENERGY SPECTRUM =====
+                    // Cycle through cosmic colors as energy cools
+                    const colorPhase = expandProgress * Math.PI * 3; // Multiple cycles
+                    const r = Math.floor(128 + 127 * Math.sin(colorPhase));
+                    const g = Math.floor(128 + 127 * Math.sin(colorPhase + Math.PI * 2/3));
+                    const b = Math.floor(128 + 127 * Math.sin(colorPhase + Math.PI * 4/3));
+                    
+                    // ===== SHOCKWAVE RINGS =====
+                    // Multiple expanding rings at different speeds
+                    for (let i = 0; i < 5; i++) {
+                        const ringDelay = i * 0.15; // Stagger the rings
+                        const ringProgress = Math.max(0, expandProgress - ringDelay);
+                        const ringRadius = Math.pow(ringProgress, 0.8) * maxRadius * 1.5;
+                        
+                        if (ringRadius > 0) {
+                            const ringAlpha = (1 - ringProgress) * 0.3;
+                            ctx.strokeStyle = `rgba(${r}, ${g}, ${b}, ${ringAlpha})`;
+                            ctx.lineWidth = 3 + (i * 2);
+                            ctx.shadowBlur = 20;
+                            ctx.shadowColor = `rgba(${r}, ${g}, ${b}, 0.8)`;
+                            ctx.beginPath();
+                            ctx.arc(centerX, centerY, ringRadius, 0, Math.PI * 2);
+                            ctx.stroke();
+                        }
+                    }
+                    ctx.shadowBlur = 0;
+                    
+                    // ===== ENERGY PARTICLES =====
+                    // Hundreds of particles shooting outward
+                    const particleCount = 200;
+                    for (let i = 0; i < particleCount; i++) {
+                        const angle = (i / particleCount) * Math.PI * 2;
+                        const speed = 0.3 + (Math.random() * 0.7); // Varied speeds
+                        const distance = whiteExpansionRadius * speed;
+                        
+                        const px = centerX + Math.cos(angle) * distance;
+                        const py = centerY + Math.sin(angle) * distance;
+                        
+                        // Particles fade as they travel
+                        const particleAlpha = (1 - expandProgress) * 0.6;
+                        const particleSize = 1 + Math.random() * 2;
+                        
+                        // Rainbow particles
+                        const particleHue = (angle / (Math.PI * 2)) * 360;
+                        ctx.fillStyle = `hsla(${particleHue}, 100%, 70%, ${particleAlpha})`;
+                        ctx.beginPath();
+                        ctx.arc(px, py, particleSize, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+                    
+                    // ===== MAIN EXPANSION SPHERE WITH WHITE-HOT CORE =====
+                    // As we approach the white flash, the core intensifies and expands
+                    const coreIntensity = Math.pow(expandProgress, 2); // Accelerates toward end
+                    const coreRadius = whiteExpansionRadius * (0.3 + coreIntensity * 0.5); // Grows from 30% to 80% of expansion
+                    
+                    // Multi-layer gradient for realistic energy distribution
+                    const gradient = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, whiteExpansionRadius);
+                    
+                    // INTENSE WHITE CORE - grows brighter and larger toward flash
+                    const whiteIntensity = 0.5 + (coreIntensity * 0.5); // 0.5 to 1.0
+                    gradient.addColorStop(0, `rgba(255, 255, 255, ${whiteIntensity})`); // White-hot center
+                    gradient.addColorStop(coreRadius / whiteExpansionRadius, `rgba(255, 255, 255, ${whiteIntensity * 0.8})`); // White expanding
+                    
+                    // RAINBOW TRANSITION ZONE
+                    const transitionPoint = coreRadius / whiteExpansionRadius + 0.15;
+                    gradient.addColorStop(Math.min(transitionPoint, 0.99), `rgba(${r}, ${g}, ${b}, ${0.9 - expandProgress * 0.3})`); // Rainbow middle
+                    gradient.addColorStop(0.7, `rgba(${r * 0.7}, ${g * 0.7}, ${b * 0.7}, ${0.6 - expandProgress * 0.4})`); // Darker edge
+                    gradient.addColorStop(1, `rgba(${r * 0.3}, ${g * 0.3}, ${b * 0.3}, 0)`); // Fade to nothing
+                    
+                    ctx.fillStyle = gradient;
+                    ctx.shadowBlur = 40 + (coreIntensity * 60); // Glow intensifies
+                    ctx.shadowColor = `rgba(255, 255, 255, ${coreIntensity * 0.8})`;
                     ctx.beginPath();
                     ctx.arc(centerX, centerY, whiteExpansionRadius, 0, Math.PI * 2);
                     ctx.fill();
+                    ctx.shadowBlur = 0;
+                    
+                    // ===== ADDITIONAL WHITE CORE OVERLAY =====
+                    // Pure white sphere that rapidly expands in final moments
+                    if (expandProgress > 0.7) {
+                        const finalBurstProgress = (expandProgress - 0.7) / 0.3; // 0 to 1 in last 30%
+                        const burstRadius = whiteExpansionRadius * Math.pow(finalBurstProgress, 0.5);
+                        const burstAlpha = finalBurstProgress * 0.9;
+                        
+                        ctx.fillStyle = `rgba(255, 255, 255, ${burstAlpha})`;
+                        ctx.shadowBlur = 80;
+                        ctx.shadowColor = `rgba(255, 255, 255, ${burstAlpha})`;
+                        ctx.beginPath();
+                        ctx.arc(centerX, centerY, burstRadius, 0, Math.PI * 2);
+                        ctx.fill();
+                        ctx.shadowBlur = 0;
+                    }
+                    
+                    // ===== QUANTUM FOAM EFFECT =====
+                    // Reality flickering at the edges
+                    if (expandProgress < 0.5) {
+                        for (let i = 0; i < 50; i++) {
+                            const foamAngle = Math.random() * Math.PI * 2;
+                            const foamDist = whiteExpansionRadius + (Math.random() * 50 - 25);
+                            const foamX = centerX + Math.cos(foamAngle) * foamDist;
+                            const foamY = centerY + Math.sin(foamAngle) * foamDist;
+                            
+                            ctx.fillStyle = `rgba(255, 255, 255, ${Math.random() * 0.3})`;
+                            ctx.beginPath();
+                            ctx.arc(foamX, foamY, Math.random() * 3, 0, Math.PI * 2);
+                            ctx.fill();
+                        }
+                    }
                 }
                 // Phase 4: Full white screen, KEEP black overlay (7-8s)
                 else if (explosionTimer >= 7 && explosionTimer < 8) {
