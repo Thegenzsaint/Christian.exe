@@ -188,7 +188,7 @@
         /* Section 3: Fade to Black + Genesis Text */
         #genesis-section {
             position: relative;
-            min-height: 300vh;
+            min-height: 250vh; /* Taller for proper verse spacing */
             z-index: 2;
         }
         
@@ -337,17 +337,18 @@
         <section id="genesis-section">
             <div id="fade-overlay"></div>
             
-            <div class="genesis-text verse" id="verse-1" style="top: 80vh;">
+            <div class="genesis-text verse" id="verse-1" style="top: 50vh;">
                 In the beginning, when God created the heavens and the earth...
             </div>
             
-            <div class="genesis-text verse" id="verse-2" style="top: 140vh;">
+            <div class="genesis-text verse" id="verse-2" style="top: 120vh;">
                 ...God said, "Let there be light,"
             </div>
             
             <div id="tap-prompt" style="top: 180vh;">tap or click</div>
             
-            <div class="genesis-text verse" id="verse-3" style="top: 200vh; opacity: 0; display: none;">
+            <!-- Verse 3 at SAME position as verse 1 - where explosion happens -->
+            <div class="genesis-text verse" id="verse-3" style="top: 50vh; opacity: 0; display: none;">
                 ...and there was light.
             </div>
         </section>
@@ -403,27 +404,16 @@
             if (explosionActive) return;
             
             console.log("=== EXPLOSION TRIGGERED ===");
-            explosionActive = true;
-            explosionTimer = 0;
-            explosionParticles = [];
-            centerPoint = { size: 0, opacity: 0 };
-            whiteExpansionRadius = 0;
             
-            // FORCE explosion WAY BELOW the viewport edge
-            explosionCenterX = canvas.width / 2;
-            explosionCenterY = canvas.height + 300; // 300px BELOW bottom edge
+            // IMMEDIATELY lock black overlay at full opacity - don't let it fade during scroll
+            fadeOverlay.style.opacity = 1;
+            fadeOverlay.style.transition = 'none'; // No transition during scroll
             
-            console.log(`💥 Explosion WAY BELOW viewport at: ${explosionCenterX.toFixed(0)}, ${explosionCenterY.toFixed(0)}`);
-            console.log(`💥 Canvas height: ${canvas.height}, explosion ${explosionCenterY - canvas.height}px BELOW bottom`);
-            
-            // Save current scroll position
-            explosionScrollY = window.scrollY;
-            
-            // Hide tap prompt and verse 2
+            // Hide tap prompt, verse 1, and verse 2 immediately
             tapPrompt.style.opacity = 0;
             tapPrompt.style.pointerEvents = 'none';
-            const verse2 = document.getElementById('verse-2');
-            verse2.style.opacity = 0;
+            document.getElementById('verse-1').style.opacity = 0;
+            document.getElementById('verse-2').style.opacity = 0;
             
             // HIDE STARGAZING MESSAGE during explosion  
             const stargazingMsg = document.getElementById('stargazing-message');
@@ -431,8 +421,36 @@
                 stargazingMsg.style.opacity = 0;
             }
             
-            // Keep black overlay visible
-            fadeOverlay.style.opacity = 1;
+            // Scroll to where verse 1 is positioned AND center it in viewport
+            // Genesis starts at 300vh, verse 1 is at top: 50vh within genesis
+            // Absolute position: 300vh + 50vh = 350vh
+            // We want verse 1 centered, so scroll to (verse position - half viewport)
+            const verse1Position = window.innerHeight * 3.5; // 350vh
+            const explosionScrollTarget = verse1Position - (window.innerHeight * 0.5); // Center it
+            
+            window.scrollTo({
+                top: explosionScrollTarget,
+                behavior: 'smooth'
+            });
+            
+            // Wait for scroll to complete, then start explosion
+            setTimeout(() => {
+                explosionActive = true;
+                explosionTimer = 0;
+                explosionParticles = [];
+                centerPoint = { size: 0, opacity: 0 };
+                whiteExpansionRadius = 0;
+                
+                // Explosion at center of viewport
+                explosionCenterX = canvas.width / 2;
+                explosionCenterY = canvas.height / 2;
+                
+                console.log(`💥 Explosion starting at center: ${explosionCenterX.toFixed(0)}, ${explosionCenterY.toFixed(0)}`);
+                
+                // Save scroll position
+                explosionScrollY = window.scrollY;
+                
+            }, 1000); // Wait 1 second for scroll
         }
         
         // Click/tap handler - ANYWHERE on screen when tap prompt is visible
@@ -917,19 +935,6 @@
             const scrollY = window.scrollY;
             const windowHeight = window.innerHeight;
             
-            // Prevent scrolling past tap prompt until explosion completes
-            if (!explosionCompleted && !explosionActive) {
-                const tapPromptElement = document.getElementById('tap-prompt');
-                const tapPromptRect = tapPromptElement.getBoundingClientRect();
-                const tapPromptAbsoluteY = tapPromptRect.top + scrollY;
-                const maxScroll = tapPromptAbsoluteY - (windowHeight / 2) + 100; // Stop slightly after tap prompt centers
-                
-                if (scrollY > maxScroll) {
-                    window.scrollTo(0, maxScroll);
-                    return;
-                }
-            }
-            
             // Calculate which section we're in
             const declarationEnd = windowHeight;
             const stargazingEnd = declarationEnd + windowHeight * 2;
@@ -938,13 +943,11 @@
             // Update stargazing messages
             updateStargazingMessage();
             
-            // Fade to black as we enter genesis section (ONLY if explosion hasn't happened)
-            if (scrollY > genesisStart && !explosionCompleted) {
-                const fadeProgress = Math.min(1, (scrollY - genesisStart) / (windowHeight * 0.5));
-                fadeOverlay.style.opacity = fadeProgress;
-                
-                // Show genesis verses - max opacity in CENTER, fade in/out (ONLY before explosion)
-                if (!explosionCompleted) {
+            // Fade to black starting at genesis section, full black by verse 2
+            const blackFadeStart = genesisStart; // Start at 300vh (genesis start)
+            
+            // Show genesis verses whenever we're in or near genesis section (ONLY before explosion)
+            if (scrollY > (genesisStart - windowHeight) && !explosionCompleted) {
                 const verses = document.querySelectorAll('.genesis-text');
                 verses.forEach((verse) => {
                     // Skip verse 3 if it hasn't been revealed yet
@@ -991,11 +994,20 @@
                     tapPrompt.style.opacity = 0;
                     tapPrompt.style.pointerEvents = 'none';
                 }
+            }
+            
+            // Handle black overlay fade separately (ONLY if explosion is not happening)
+            if (!explosionActive && !explosionCompleted) {
+                if (scrollY > blackFadeStart) {
+                    // Fade SUPER FAST over 15vh - full black by 315vh (way before verse 1 at 350vh)
+                    const fadeProgress = Math.min(1, (scrollY - blackFadeStart) / (windowHeight * 0.15));
+                    fadeOverlay.style.opacity = fadeProgress;
+                } else {
+                    // Only reset fade overlay if explosion hasn't started
+                    fadeOverlay.style.opacity = 0;
+                    tapPrompt.style.opacity = 0;
+                    tapPrompt.style.pointerEvents = 'none';
                 }
-            } else {
-                fadeOverlay.style.opacity = 0;
-                tapPrompt.style.opacity = 0;
-                tapPrompt.style.pointerEvents = 'none';
             }
         });
         
@@ -1249,19 +1261,16 @@
                     
                     console.log(`Expansion radius: ${whiteExpansionRadius.toFixed(0)}px`);
                 }
-                // Phase 4: Full white screen, fade black overlay (2.5-3.5s)
+                // Phase 4: Full white screen, KEEP black overlay (2.5-3.5s)
                 else if (explosionTimer >= 2.5 && explosionTimer < 3.5) {
                     // Fill entire screen with white
                     ctx.fillStyle = 'white';
                     ctx.fillRect(0, 0, canvas.width, canvas.height);
                     
-                    // Fade black overlay to 0
-                    const fadeProgress = (explosionTimer - 2.5) / 1;
-                    fadeOverlay.style.opacity = 1 - fadeProgress;
-                    
-                    console.log(`Black fade: ${fadeOverlay.style.opacity}`);
+                    // KEEP black overlay at full opacity
+                    fadeOverlay.style.opacity = 1;
                 }
-                // Phase 5: White fades to reveal stars, show verse 3 (3.5-5.5s)
+                // Phase 5: White fades AND black fades together, reveal stars + verse 3 (3.5-5.5s)
                 else if (explosionTimer >= 3.5 && explosionTimer < 5.5) {
                     const fadeProgress = (explosionTimer - 3.5) / 2;
                     const whiteAlpha = 1 - fadeProgress;
@@ -1272,12 +1281,14 @@
                     ctx.fillRect(0, 0, canvas.width, canvas.height);
                     ctx.globalAlpha = 1;
                     
-                    // Show verse 3 at 4s
+                    // BLACK FADES WITH WHITE - both fade together
+                    fadeOverlay.style.opacity = whiteAlpha;
+                    
+                    // Show verse 3 at 4s (it's already fixed to center of viewport)
                     if (explosionTimer >= 4) {
                         const verse3 = document.getElementById('verse-3');
                         verse3.style.display = 'block';
-                        verse3.style.opacity = 1;
-                        verse3.style.top = '50vh'; // Center of screen
+                        verse3.style.opacity = Math.min(1, (explosionTimer - 4) * 2); // Fade in verse
                     }
                 }
                 // Phase 6: Complete (5.5s+)
