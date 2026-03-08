@@ -188,7 +188,7 @@
         /* Section 3: Fade to Black + Genesis Text */
         #genesis-section {
             position: relative;
-            min-height: 250vh; /* Taller for proper verse spacing */
+            min-height: 220vh; /* Extended to give tap prompt breathing room */
             z-index: 2;
         }
         
@@ -232,13 +232,19 @@
             position: absolute;
             left: 50%;
             transform: translateX(-50%);
-            font-size: 1.2em;
+            font-size: 1.8em; /* 25% smaller than 2.4em */
             color: white;
             opacity: 0;
             z-index: 7;
             cursor: pointer;
             user-select: none;
             pointer-events: none;
+            animation: faintFlash 3s ease-in-out infinite; /* Slow faint flash */
+        }
+        
+        @keyframes faintFlash {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 0.5; }
         }
         
         @keyframes pulse {
@@ -345,7 +351,7 @@
                 ...God said, "Let there be light,"
             </div>
             
-            <div id="tap-prompt" style="top: 180vh;">tap or click</div>
+            <div id="tap-prompt" style="top: 170vh;">(Click or tap anywhere)</div>
             
             <!-- Verse 3 at SAME position as verse 1 - where explosion happens -->
             <div class="genesis-text verse" id="verse-3" style="top: 50vh; opacity: 0; display: none;">
@@ -412,8 +418,9 @@
             fadeOverlay.style.opacity = 1;
             fadeOverlay.style.transition = 'none'; // No transition during scroll
             
-            // Hide ALL verses immediately - nothing flies by during scroll
+            // IMMEDIATELY VANISH tap prompt - preserve the magic!
             tapPrompt.style.opacity = 0;
+            tapPrompt.style.display = 'none'; // Completely gone
             tapPrompt.style.pointerEvents = 'none';
             document.getElementById('verse-1').style.opacity = 0;
             document.getElementById('verse-2').style.opacity = 0;
