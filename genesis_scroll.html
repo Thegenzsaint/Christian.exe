@@ -52,7 +52,7 @@
             box-shadow: 0 20px 60px rgba(0,0,0,0.3);
             text-align: center;
             backdrop-filter: blur(10px);
-            margin: 20vh auto;
+            margin: 0 auto; /* Removed 20vh top/bottom margin */
             color: #2c3e50;
         }
         
@@ -471,51 +471,210 @@
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight; // Back to single viewport
         
+        // ===================================================================
+        // REAL STAR DATA - Actual celestial coordinates
+        // ===================================================================
+        
+        // Real star catalog: [name, RA (hours), Dec (degrees), magnitude, color]
+        const brightStarsData = [
+            // Brightest stars
+            ["Sirius", 6.75, -16.72, -1.46, "white"],
+            ["Arcturus", 14.26, 19.18, -0.04, "orange"],
+            ["Vega", 18.62, 38.78, 0.03, "white"],
+            ["Capella", 5.28, 45.99, 0.08, "yellow"],
+            ["Rigel", 5.24, -8.20, 0.12, "blue"],
+            ["Procyon", 7.66, 5.23, 0.38, "white"],
+            ["Betelgeuse", 5.92, 7.41, 0.50, "red"],
+            ["Altair", 19.85, 8.87, 0.77, "white"],
+            ["Aldebaran", 4.60, 16.51, 0.85, "orange"],
+            ["Spica", 13.42, -11.16, 1.04, "blue"],
+            ["Antares", 16.49, -26.43, 1.09, "red"],
+            ["Pollux", 7.76, 28.03, 1.14, "orange"],
+            ["Fomalhaut", 22.96, -29.62, 1.16, "white"],
+            ["Deneb", 20.69, 45.28, 1.25, "white"],
+            ["Regulus", 10.14, 11.97, 1.35, "blue"],
+            
+            // Orion constellation
+            ["Bellatrix", 5.42, 6.35, 1.64, "blue"],
+            ["Alnilam", 5.60, -1.20, 1.69, "blue"],
+            ["Alnitak", 5.68, -1.94, 1.77, "blue"],
+            ["Saiph", 5.80, -9.67, 2.06, "blue"],
+            ["Mintaka", 5.53, -0.30, 2.23, "blue"],
+            
+            // Big Dipper (Ursa Major)
+            ["Dubhe", 11.06, 61.75, 1.79, "orange"],
+            ["Merak", 11.03, 56.38, 2.37, "white"],
+            ["Phecda", 11.90, 53.69, 2.44, "white"],
+            ["Megrez", 12.26, 57.03, 3.31, "white"],
+            ["Alioth", 12.90, 55.96, 1.77, "white"],
+            ["Mizar", 13.40, 54.93, 2.27, "white"],
+            ["Alkaid", 13.79, 49.31, 1.86, "blue"],
+            
+            // Cassiopeia
+            ["Schedar", 0.68, 56.54, 2.23, "orange"],
+            ["Caph", 0.15, 59.15, 2.27, "white"],
+            ["Ruchbah", 1.43, 60.24, 2.68, "white"],
+            
+            // Leo
+            ["Denebola", 11.82, 14.57, 2.14, "white"],
+            
+            // Pleiades cluster
+            ["Alcyone", 3.79, 24.11, 2.86, "blue"],
+            ["Atlas", 3.83, 24.05, 3.62, "blue"],
+            ["Electra", 3.71, 24.11, 3.70, "blue"],
+            ["Maia", 3.75, 24.37, 3.86, "blue"],
+        ];
+        
+        // Color map for stars
+        const starColors = {
+            "blue": "rgba(155, 176, 255, ",
+            "white": "rgba(255, 255, 255, ",
+            "yellow": "rgba(255, 244, 234, ",
+            "orange": "rgba(255, 209, 178, ",
+            "red": "rgba(255, 204, 111, "
+        };
+        
         // Star system
         const stars = [];
         const galaxies = [];
         let uap = null;
         let shootingStars = [];
         
-        // Initialize stars
-        for (let i = 0; i < 200; i++) {
+        // Convert real star data to canvas coordinates
+        brightStarsData.forEach(([name, ra, dec, magnitude, colorName]) => {
+            // RA: 0-24 hours maps to full canvas width
+            const x = (ra / 24) * canvas.width;
+            
+            // Dec: focus on -40 to +90 (northern hemisphere view)
+            const decMin = -40;
+            const decMax = 90;
+            const decNormalized = (dec - decMin) / (decMax - decMin);
+            const y = canvas.height * (1 - decNormalized);
+            
+            // Magnitude to size/opacity (brighter = bigger)
+            const minMag = -1.5;
+            const maxMag = 4.5;
+            const brightness = 1 - ((magnitude - minMag) / (maxMag - minMag));
+            const size = 1.2 + (brightness * 3); // Increased from 0.8 + 2.5
+            const opacity = 0.6 + (brightness * 0.4); // Increased from 0.4 + 0.6 (now 0.6-1.0)
+            
             stars.push({
+                name: name,
+                x: x,
+                y: y,
+                size: size,
+                opacity: opacity,
+                color: starColors[colorName] || starColors["white"],
+                twinkleSpeed: 0.02 + Math.random() * 0.03,
+                twinklePhase: Math.random() * Math.PI * 2,
+                isReal: true // Mark as real star
+            });
+        });
+        
+        // Add fainter filler stars to complete the sky
+        for (let i = 0; i < 400; i++) { // Increased from 150
+            stars.push({
+                name: `filler-${i}`,
                 x: Math.random() * canvas.width,
                 y: Math.random() * canvas.height,
-                size: Math.random() * 2 + 0.5,
-                opacity: Math.random() * 0.8 + 0.2,
+                size: Math.random() * 1.0 + 0.4, // Bigger (0.4-1.4, was 0.2-1.0)
+                opacity: Math.random() * 0.5 + 0.3, // Brighter (0.3-0.8, was 0.15-0.55)
+                color: "rgba(255, 255, 255, ",
                 twinkleSpeed: Math.random() * 0.02 + 0.01,
-                twinklePhase: Math.random() * Math.PI * 2
+                twinklePhase: Math.random() * Math.PI * 2,
+                isReal: false
             });
         }
         
-        // Initialize galaxy clusters - MUCH BIGGER AND SLOWER
-        function createGalaxyCluster(centerX, centerY, numStars) {
+        console.log(`⭐ Loaded ${brightStarsData.length} real stars from celestial catalog`);
+        console.log(`⭐ Constellations: Orion, Big Dipper, Cassiopeia, Leo, Pleiades`);
+        console.log(`⭐ Total stars: ${stars.length}`);
+        
+        // ===================================================================
+        // REAL GALAXIES AND STAR CLUSTERS
+        // ===================================================================
+        
+        // Real deep sky objects: [name, RA (hours), Dec (degrees), type, apparent_size, galaxy_type]
+        const deepSkyObjects = [
+            ["Andromeda Galaxy", 0.71, 41.27, "galaxy", 180, "spiral"], // M31 - spiral galaxy
+            ["Pleiades", 3.79, 24.12, "cluster", 110, null], // M45 - open cluster
+            ["Beehive Cluster", 8.67, 19.98, "cluster", 95, null], // M44 - open cluster
+        ];
+        
+        function createRealCluster(name, ra, dec, type, apparentSize, galaxyType, numStars) {
             const cluster = [];
+            
+            // Convert RA/Dec to canvas position (same as stars)
+            const centerX = (ra / 24) * canvas.width;
+            const decMin = -40;
+            const decMax = 90;
+            const decNormalized = (dec - decMin) / (decMax - decMin);
+            const centerY = canvas.height * (1 - decNormalized);
+            
+            // Apparent size in arc-minutes to pixels
+            const clusterRadius = (apparentSize / 60) * 50; // Scale factor
+            
             for (let i = 0; i < numStars; i++) {
                 const angle = Math.random() * Math.PI * 2;
-                const radiusX = 80 + Math.random() * 250; // MUCH BIGGER - was 20-160
-                const radiusY = radiusX * (0.3 + Math.random() * 0.4);
+                
+                // Different distributions for different object types
+                let radiusX, radiusY;
+                if (type === "galaxy") {
+                    if (galaxyType === "spiral") {
+                        // Spiral galaxy - flat disk with spiral arms
+                        const armOffset = Math.floor(Math.random() * 3); // 3 spiral arms
+                        const spiralAngle = angle + (armOffset * Math.PI * 2 / 3);
+                        const r = Math.pow(Math.random(), 0.6) * clusterRadius;
+                        radiusX = r * Math.cos(spiralAngle) * 1.2; // Elongated
+                        radiusY = r * Math.sin(spiralAngle) * 0.4; // Flattened
+                    } else if (galaxyType === "elliptical") {
+                        // Elliptical galaxy - smooth ellipse
+                        const r = Math.pow(Math.random(), 0.8) * clusterRadius;
+                        radiusX = r * 0.7;
+                        radiusY = r * 0.5; // Oval shape
+                    } else {
+                        // Irregular galaxy - random blob
+                        radiusX = Math.random() * clusterRadius * 0.6;
+                        radiusY = Math.random() * clusterRadius * 0.6;
+                    }
+                } else if (type === "cluster") {
+                    // Higher density at center for star clusters
+                    const r = Math.pow(Math.random(), 0.7) * clusterRadius; // More concentrated (was 0.5)
+                    radiusX = r;
+                    radiusY = r;
+                } else {
+                    // Nebula - irregular
+                    radiusX = Math.random() * clusterRadius * 0.8;
+                    radiusY = Math.random() * clusterRadius * 0.8;
+                }
                 
                 cluster.push({
+                    name: name,
+                    type: type,
+                    galaxyType: galaxyType,
                     centerX,
                     centerY,
                     angle: angle,
                     radiusX: radiusX,
                     radiusY: radiusY,
-                    orbitSpeed: (20 + Math.random() * 30) / 100000, // WAY SLOWER - was /10000
-                    size: Math.random() * 1.3 + 0.4,
-                    opacity: Math.random() * 0.6 + 0.3,
+                    orbitSpeed: 0, // COMPLETELY STATIC - no rotation
+                    size: type === "galaxy" ? (Math.random() * 1.0 + 0.5) : (Math.random() * 1.5 + 0.6),
+                    opacity: type === "galaxy" ? (Math.random() * 0.5 + 0.5) : (Math.random() * 0.7 + 0.5), // 10% brighter (was 0.4-0.9 / 0.4-1.1, now 0.5-1.0 / 0.5-1.2)
                     wobblePhase: Math.random() * Math.PI * 2,
-                    wobbleAmount: 5 + Math.random() * 10
+                    wobbleAmount: 0.625 + Math.random() * 1.25 // 25% more wobble (was 0.5-1.5, now 0.625-1.875)
                 });
             }
+            
+            console.log(`🌌 Created ${name} (${galaxyType || type}) at RA ${ra.toFixed(2)}h, Dec ${dec.toFixed(1)}° with ${numStars} stars`);
             return cluster;
         }
         
-        galaxies.push(createGalaxyCluster(canvas.width * 0.2, canvas.height * 0.15, 70));
-        galaxies.push(createGalaxyCluster(canvas.width * 0.8, canvas.height * 0.7, 60));
-        galaxies.push(createGalaxyCluster(canvas.width * 0.35, canvas.height * 0.85, 50));
+        // Create real deep sky objects
+        galaxies.push(createRealCluster("Andromeda Galaxy", 0.71, 41.27, "galaxy", 180, "spiral", 80));
+        galaxies.push(createRealCluster("Pleiades", 3.79, 24.12, "cluster", 110, null, 60));
+        galaxies.push(createRealCluster("Beehive Cluster", 8.67, 19.98, "cluster", 95, null, 50));
+        
+        console.log(`🌌 Total deep sky objects: ${galaxies.length}`);
         
         // Shooting star creation
         function createShootingStar() {
@@ -852,29 +1011,39 @@
             // Update stargazing message timer
             updateStargazingMessage();
             
-            // Clear canvas - use BLACK if explosion is active and early, otherwise space blue
+            // Clear canvas - use BLACK if explosion is active and early, otherwise darker space blue
             if (explosionActive && explosionTimer < 2.5) {
                 ctx.fillStyle = 'black'; // Black background for explosion
             } else {
-                ctx.fillStyle = '#0f1f38'; // Normal space blue
+                ctx.fillStyle = '#0a1628'; // Darker space blue (was #0f1f38)
             }
             ctx.fillRect(0, 0, canvas.width, canvas.height);
             
             // Render stars (ONLY if explosion isn't active OR we're past the white expansion phase)
             if (!explosionActive || explosionTimer >= 3.5) {
             
-            // Render stars
+            // Render stars with PARALLAX
+            const scrollY = window.scrollY;
+            const parallaxFactor = 0.15; // Positive = stars move UP when you scroll DOWN
+            
             stars.forEach(star => {
                 star.twinklePhase += star.twinkleSpeed;
-                const twinkle = Math.sin(star.twinklePhase) * 0.3 + 0.7;
+                const twinkle = Math.sin(star.twinklePhase) * 0.5 + 0.7; // More variation (was 0.3, now 0.5) - range 0.2 to 1.2
                 
-                ctx.fillStyle = `rgba(255, 255, 255, ${star.opacity * twinkle})`;
+                // Parallax: brighter/bigger stars move slower (closer), dimmer stars move faster (farther)
+                const depth = 1 - (star.opacity * 0.5); // 0 (close) to 0.5 (far)
+                const parallaxOffset = -scrollY * parallaxFactor * depth; // NEGATIVE scrollY so they move opposite direction
+                
+                // Use star's actual color if it has one
+                const finalOpacity = star.opacity * twinkle;
+                ctx.fillStyle = star.color ? `${star.color}${finalOpacity})` : `rgba(255, 255, 255, ${finalOpacity})`;
+                
                 ctx.beginPath();
-                ctx.arc(star.x, star.y, star.size, 0, Math.PI * 2);
+                ctx.arc(star.x, star.y + parallaxOffset, star.size, 0, Math.PI * 2);
                 ctx.fill();
             });
             
-            // Render galaxy clusters
+            // Render galaxy clusters with PARALLAX
             galaxies.forEach(cluster => {
                 cluster.forEach(star => {
                     // Update orbit
@@ -885,9 +1054,21 @@
                     const x = star.centerX + Math.cos(star.angle) * star.radiusX + wobble;
                     const y = star.centerY + Math.sin(star.angle) * star.radiusY + wobble * 0.5;
                     
-                    ctx.fillStyle = `rgba(255, 255, 255, ${star.opacity})`;
+                    // Parallax: galaxies are DISTANT, move very slowly (opposite to scroll)
+                    const galaxyDepth = 0.7; // Far away
+                    const parallaxOffset = -scrollY * parallaxFactor * galaxyDepth;
+                    
+                    // Calculate distance from center for fade effect
+                    const dx = x - star.centerX;
+                    const dy = y - star.centerY;
+                    const distanceFromCenter = Math.sqrt(dx * dx + dy * dy);
+                    const maxRadius = Math.max(Math.abs(star.radiusX), Math.abs(star.radiusY));
+                    const edgeFade = 1 - (distanceFromCenter / (maxRadius * 1.2)); // Fade at edges
+                    const finalOpacity = star.opacity * Math.max(0.2, edgeFade); // Minimum 20% opacity
+                    
+                    ctx.fillStyle = `rgba(255, 255, 255, ${finalOpacity})`;
                     ctx.beginPath();
-                    ctx.arc(x, y, star.size, 0, Math.PI * 2);
+                    ctx.arc(x, y + parallaxOffset, star.size, 0, Math.PI * 2);
                     ctx.fill();
                 });
             });
