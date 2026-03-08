@@ -1355,14 +1355,31 @@
                     fadeOverlay.style.opacity = 0; // Lock at 0
                     
                     const verse3 = document.getElementById('verse-3-explosion');
+                    
+                    // Convert from FIXED to ABSOLUTE at current scroll position
+                    if (verse3.style.position === 'fixed') {
+                        const currentScrollY = window.scrollY;
+                        const windowHeight = window.innerHeight;
+                        
+                        // Current fixed position is 70% from top of viewport
+                        // Convert to absolute position on the page
+                        const absoluteTop = currentScrollY + (windowHeight * 0.7);
+                        
+                        // Change to absolute and set the calculated position
+                        verse3.style.position = 'absolute';
+                        verse3.style.top = absoluteTop + 'px';
+                        verse3.style.left = '50%';
+                        verse3.style.transform = 'translateX(-50%)';
+                        verse3.style.zIndex = '1000';
+                        
+                        // Move it from body to scroll-container so absolute positioning works
+                        document.getElementById('scroll-container').appendChild(verse3);
+                        
+                        console.log(`✅ Verse 3 converted to absolute at ${absoluteTop}px (scrollY: ${currentScrollY})`);
+                    }
+                    
                     verse3.style.display = 'block';
                     verse3.style.opacity = 1;
-                    
-                    // KEEP IT FIXED - don't convert to absolute
-                    // Just lock it visible at 70% position
-                    verse3.style.position = 'fixed';
-                    verse3.style.top = '70%';
-                    verse3.style.zIndex = '1000';
                     
                     // LOCK STARGAZING MESSAGE VISIBLE
                     stargazingMessage.style.display = 'block';
