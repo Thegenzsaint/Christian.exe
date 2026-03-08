@@ -279,6 +279,37 @@
             font-weight: 300;
             letter-spacing: 2px;
         }
+        
+        /* ===================================================================
+           MOBILE RESPONSIVE - Smaller white box to show more stars
+           ================================================================ */
+        @media (max-width: 768px) {
+            .declaration-box {
+                max-width: 85%; /* Narrower on mobile */
+                padding: 40px 25px; /* Less padding */
+                margin: 0 20px; /* Side margins to show stars */
+            }
+            
+            .declaration-box h1 {
+                font-size: 2.2em; /* Smaller title */
+            }
+            
+            .declaration-box .subtitle {
+                font-size: 1em;
+                margin-bottom: 25px;
+            }
+            
+            .description {
+                font-size: 0.95em;
+                line-height: 1.6;
+                margin-bottom: 25px;
+            }
+            
+            .download-links a {
+                font-size: 0.9em;
+                padding: 12px 20px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -851,9 +882,20 @@
             const startX = centerX - Math.cos(angle) * distance;
             const startY = centerY - Math.sin(angle) * distance;
             
-            // End position (outside screen on opposite side)
-            const endX = centerX + Math.cos(angle) * distance;
-            const endY = centerY + Math.sin(angle) * distance;
+            // CURVED TRAJECTORY - 60% have banking turns, 40% fly straight
+            let endX, endY, curvatureDirection = 0;
+            if (Math.random() < 0.6) {
+                // CURVED - banks/turns during flight
+                const curvature = (Math.random() - 0.5) * Math.PI * 0.4; // ±36 degree curve
+                curvatureDirection = Math.sign(curvature); // -1 (left) or +1 (right)
+                const curvedAngle = angle + curvature;
+                endX = centerX + Math.cos(curvedAngle) * distance;
+                endY = centerY + Math.sin(curvedAngle) * distance;
+            } else {
+                // STRAIGHT - direct path through
+                endX = centerX + Math.cos(angle) * distance;
+                endY = centerY + Math.sin(angle) * distance;
+            }
             
             // RANDOM PARALLAX DEPTH (0.1-2.0, MORE EXTREME - never foreground 2.5)
             const formationDepth = 0.1 + Math.random() * 1.9; // 0.1 (far) to 2.0 (close)
@@ -886,7 +928,8 @@
                     opacity: 0,
                     size: orbSize,
                     depth: formationDepth,
-                    brightness: baseBrightness
+                    brightness: baseBrightness,
+                    curvatureDirection: curvatureDirection // -1, 0, or +1
                 });
                 
                 // Two back orbs
@@ -902,7 +945,8 @@
                     opacity: 0,
                     size: orbSize,
                     depth: formationDepth,
-                    brightness: baseBrightness
+                    brightness: baseBrightness,
+                    curvatureDirection: curvatureDirection
                 });
                 
                 formation.push({
@@ -914,7 +958,8 @@
                     opacity: 0,
                     size: orbSize,
                     depth: formationDepth,
-                    brightness: baseBrightness
+                    brightness: baseBrightness,
+                    curvatureDirection: curvatureDirection
                 });
             } else {
                 // V-SHAPE: 5 orbs in V formation
@@ -931,7 +976,8 @@
                     opacity: 0,
                     size: orbSize,
                     depth: formationDepth,
-                    brightness: baseBrightness
+                    brightness: baseBrightness,
+                    curvatureDirection: curvatureDirection
                 });
                 
                 // V arms (2 on each side)
@@ -946,7 +992,8 @@
                         opacity: 0,
                         size: orbSize,
                         depth: formationDepth,
-                        brightness: baseBrightness
+                        brightness: baseBrightness,
+                        curvatureDirection: curvatureDirection
                     });
                     
                     // Left arm
@@ -959,7 +1006,8 @@
                         opacity: 0,
                         size: orbSize,
                         depth: formationDepth,
-                        brightness: baseBrightness
+                        brightness: baseBrightness,
+                        curvatureDirection: curvatureDirection
                     });
                 }
             }
@@ -967,7 +1015,7 @@
         
         // UAP creation with CURVED PATHS
         function createUAP() {
-            // FORMATION FLYBY chance (same as close encounter - 25%)
+            // FORMATION FLYBY chance (25%)
             const formationFlyby = Math.random() < 0.25; // 25% chance
             
             if (formationFlyby) {
@@ -977,8 +1025,8 @@
                 return; // Don't create normal UAPs
             }
             
-            // Close encounter chance FIRST - determines if we spawn dual
-            const closeEncounter = Math.random() < 0.25; // 25% chance
+            // Close encounter chance (5% - rare!)
+            const closeEncounter = Math.random() < 0.05; // 5% chance
             
             // If close encounter, ONLY spawn solo UAP (no dual)
             const spawnWhite = closeEncounter ? false : (Math.random() < 0.20); // 20% chance if NOT close encounter
@@ -1496,12 +1544,14 @@
             
             // SCATTERED RANDOM SPARKLES - OPTIMIZED
             // Instead of checking ALL stars every frame, check a random subset
-            if (!explosionActive && Math.random() < 0.1) { // Only run 10% of frames
+            if (!explosionActive && Math.random() < 0.30) { // 30% of frames (3x original!)
                 const allStars = [...stars, ...galaxies.flat()];
                 if (allStars.length > 0) {
                     // Check only 50 random stars per trigger (instead of all 435+)
                     const starsToCheck = 50;
-                    const sparkleChance = 0.0000275625 * 10; // Compensate for reduced frequency
+                    // Base chance designed for 10% frame rate
+                    // At 30% we're checking 3x more often, PLUS 50% more sparkles
+                    const sparkleChance = 0.0000275625 * 22.5; // TONS of sparkles!
                     
                     for (let i = 0; i < starsToCheck; i++) {
                         const randomStar = allStars[Math.floor(Math.random() * allStars.length)];
@@ -1730,10 +1780,42 @@
                 if (uapObj.currentSegment < uapObj.path.length - 1) {
                     const nextSegment = uapObj.path[uapObj.currentSegment + 1];
                     
-                    // SOLO UAPs (danceMode === null) - move faster, no pauses
-                    // DANCE/CHASE UAPs (danceMode === 'spiral' or 'chase') - normal speed
-                    const isSolo = (uapObj.danceMode === null || uapObj.danceMode === undefined);
-                    const moveSpeed = isSolo ? 1.5 : 1; // Solo 50% faster
+                    // RARE BEHAVIORS (surprising moments!)
+                    if (!uapObj.rareBehavior && Math.random() < 0.0005) { // 0.05% per frame = rare!
+                        const roll = Math.random();
+                        if (roll < 0.6) {
+                            // SUDDEN ACCELERATION BURST (60% of rare behaviors)
+                            uapObj.rareBehavior = 'burst';
+                            uapObj.burstTimer = 0.5; // 0.5 second burst
+                        } else {
+                            // OBSERVATION PAUSE (40% of rare behaviors)
+                            uapObj.rareBehavior = 'pause';
+                            uapObj.pauseTimer = 1.5 + Math.random(); // 1.5-2.5 second pause
+                        }
+                    }
+                    
+                    // Handle rare behaviors
+                    let moveSpeed = 1;
+                    if (uapObj.rareBehavior === 'burst' && uapObj.burstTimer > 0) {
+                        // BURST - 5x speed!
+                        moveSpeed = 5;
+                        uapObj.burstTimer -= 0.016;
+                        if (uapObj.burstTimer <= 0) {
+                            uapObj.rareBehavior = null;
+                        }
+                    } else if (uapObj.rareBehavior === 'pause' && uapObj.pauseTimer > 0) {
+                        // PAUSE - no movement
+                        moveSpeed = 0;
+                        uapObj.pauseTimer -= 0.016;
+                        if (uapObj.pauseTimer <= 0) {
+                            uapObj.rareBehavior = null;
+                        }
+                    } else {
+                        // Normal speed based on mode
+                        const isSolo = (uapObj.danceMode === null || uapObj.danceMode === undefined);
+                        moveSpeed = isSolo ? 1.5 : 1;
+                    }
+                    
                     uapObj.progress += (0.016 / segment.duration) * moveSpeed;
                     
                     if (uapObj.progress >= 1) {
@@ -2064,6 +2146,22 @@
                 const scrollY = window.scrollY;
                 const parallaxFactor = 0.15;
                 
+                // Get rotation angle from first orb (all share same rotation)
+                if (!formation[0].rotationAngle) {
+                    formation[0].rotationAngle = 0;
+                    // Rotation direction matches curve direction
+                    // curvatureDirection: -1 (left), 0 (straight), +1 (right)
+                    const baseSpeed = 0.3 + Math.random() * 0.4; // 0.3-0.7 degrees per frame
+                    const direction = formation[0].curvatureDirection; // -1, 0, or +1
+                    formation[0].rotationSpeed = baseSpeed * direction; // 0 if straight (no spin!)
+                }
+                
+                // Increment rotation
+                formation[0].rotationAngle += formation[0].rotationSpeed * 0.016;
+                const rotationRad = formation[0].rotationAngle * Math.PI / 180;
+                const cosRot = Math.cos(rotationRad);
+                const sinRot = Math.sin(rotationRad);
+                
                 formation = formation.filter(orb => {
                     orb.life -= 0.016;
                     if (orb.life <= 0) return false;
@@ -2082,10 +2180,14 @@
                     const baseX = orb.startX + (orb.endX - orb.startX) * progress;
                     const baseY = orb.startY + (orb.endY - orb.startY) * progress;
                     
+                    // Apply ROTATION to formation offset
+                    const rotatedOffsetX = orb.offsetX * cosRot - orb.offsetY * sinRot;
+                    const rotatedOffsetY = orb.offsetX * sinRot + orb.offsetY * cosRot;
+                    
                     // Apply formation offset + parallax based on depth
                     const formationParallax = -scrollY * parallaxFactor * orb.depth;
-                    const x = baseX + orb.offsetX;
-                    const y = baseY + orb.offsetY + formationParallax;
+                    const x = baseX + rotatedOffsetX;
+                    const y = baseY + rotatedOffsetY + formationParallax;
                     
                     // Render white orb with depth-based brightness
                     const finalOpacity = orb.opacity * orb.brightness; // Farther = dimmer
