@@ -190,7 +190,7 @@
         /* Section 3: Fade to Black + Genesis Text */
         #genesis-section {
             position: relative;
-            min-height: 280vh; /* Extended for more stars (was 220vh) */
+            min-height: 230vh; /* Adjusted for centered tap prompt (was 280vh) */
             z-index: 2;
         }
         
@@ -315,12 +315,46 @@
                 padding: 10px 18px;
             }
             
-            /* Stargazing message - smaller and narrower */
+            /* Footer - split into two lines with smaller text */
+            footer p:last-child {
+                font-size: 0.7em !important; /* Smaller */
+                line-height: 1.6;
+            }
+            
+            /* Stargazing section - EVEN BIGGER on mobile */
+            #stargazing-section {
+                height: 220vh !important; /* Even bigger (was 180vh) */
+            }
+            
+            /* Genesis section - perfectly sized so tap prompt is centered */
+            #genesis-section {
+                min-height: 170vh !important; /* Tighter (was 200vh) - tap prompt centered */
+            }
+            
+            /* Stargazing message - even bigger, 2 lines, flows naturally */
             #stargazing-message {
-                font-size: 1.6em; /* Much smaller (was 2.5em) */
-                width: 80%; /* Constrain width */
-                max-width: 400px;
-                line-height: 1.4;
+                font-size: 1.171875em !important; /* 25% bigger (was 0.9375em, now 0.9375*1.25) */
+                width: 320px !important; /* Wider to match bigger text */
+                max-width: 320px !important;
+                line-height: 1.2 !important;
+                /* Removed fixed positioning - let it flow naturally */
+            }
+            
+            /* Tap prompt - ONE LINE and positioned evenly between verses */
+            #tap-prompt {
+                font-size: 1em !important; /* Smaller to fit one line */
+                top: 140vh !important; /* Moved down with verses */
+                white-space: nowrap !important; /* Force one line */
+            }
+            
+            /* Verse 1 - moved down to use black space */
+            #verse-1 {
+                top: 30vh !important; /* Moved down (was 10vh) */
+            }
+            
+            /* Verse 2 - moved down to use black space */
+            #verse-2 {
+                top: 90vh !important; /* Moved down (was 70vh) */
             }
             
             /* Verse text smaller on mobile */
@@ -339,11 +373,6 @@
             #post-explosion-stargazing {
                 font-size: 1.4em !important; /* Smaller (matches verses) */
                 width: 90% !important;
-            }
-            
-            /* Extend scroll container WAY further for mobile */
-            #scroll-container {
-                min-height: 800vh; /* Way longer (was 600vh) */
             }
         }
     </style>
@@ -387,7 +416,8 @@
                     </div>
                     
                     <p style="margin-top: 20px; font-size: 0.85em;">
-                        For humanity and AHI | May it serve the Kingdom | © 2026 Christian.exe
+                        For humanity and AHI | May it serve the Kingdom<br>
+                        © 2026 Christian.exe
                     </p>
                 </footer>
             </div>
@@ -1269,7 +1299,10 @@
             const scrollY = window.scrollY;
             const windowHeight = window.innerHeight;
             const declarationEnd = windowHeight;
-            const stargazingEnd = declarationEnd + windowHeight * 2;
+            // Match the mobile/desktop heights we set in CSS
+            const isMobile = window.innerWidth <= 768;
+            const stargazingHeight = isMobile ? 2.2 : 2.0; // Mobile 220vh, desktop 200vh
+            const stargazingEnd = declarationEnd + windowHeight * stargazingHeight;
             
             const nowInStargazing = (scrollY > declarationEnd && scrollY < stargazingEnd);
             
@@ -1409,11 +1442,17 @@
             
             // Calculate which section we're in
             const declarationEnd = windowHeight;
-            const stargazingEnd = declarationEnd + windowHeight * 2;
+            // Mobile has 220vh stargazing, desktop has 200vh
+            const isMobile = window.innerWidth <= 768;
+            const stargazingHeight = isMobile ? 2.2 : 2.0; // Mobile 220vh, desktop 200vh
+            const stargazingEnd = declarationEnd + windowHeight * stargazingHeight;
             const genesisStart = stargazingEnd;
             
-            // Start black fade BEFORE genesis so it's 100% when verse 1 is centered
-            const blackFadeStart = genesisStart - (windowHeight * 0.15); // 285vh - starts 15vh earlier
+            // Black fade gradient
+            // Mobile: gradient in LAST 30vh of stargazing (stars → gradient → verse 1)
+            // Desktop: starts 15vh before genesis
+            const fadeEarlier = isMobile ? 0.3 : 0.15; // Mobile 30vh gradient, desktop 15vh
+            const blackFadeStart = genesisStart - (windowHeight * fadeEarlier);
             
             // Update stargazing messages (ONLY if explosion hasn't happened)
             if (!window.explosionEverStarted) {
