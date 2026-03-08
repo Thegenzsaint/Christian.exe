@@ -409,11 +409,19 @@
             fadeOverlay.style.opacity = 1;
             fadeOverlay.style.transition = 'none'; // No transition during scroll
             
-            // Hide tap prompt, verse 1, and verse 2 immediately
+            // Hide tap prompt, verse 1, verse 2 - SHOW verse 3 immediately
             tapPrompt.style.opacity = 0;
             tapPrompt.style.pointerEvents = 'none';
-            document.getElementById('verse-1').style.opacity = 0;
+            document.getElementById('verse-1').style.display = 'none'; // Hide completely
             document.getElementById('verse-2').style.opacity = 0;
+            
+            // SHOW verse 3 immediately (will be revealed after explosion)
+            const verse3 = document.getElementById('verse-3');
+            verse3.style.display = 'block';
+            verse3.style.opacity = 0; // Start hidden, will fade in during explosion
+            verse3.style.position = 'absolute';
+            verse3.style.top = '50vh';
+            verse3.style.zIndex = '20';
             
             // HIDE STARGAZING MESSAGE during explosion  
             const stargazingMsg = document.getElementById('stargazing-message');
@@ -441,11 +449,14 @@
                 centerPoint = { size: 0, opacity: 0 };
                 whiteExpansionRadius = 0;
                 
-                // Explosion at center of viewport
-                explosionCenterX = canvas.width / 2;
-                explosionCenterY = canvas.height / 2;
+                // RAISE CANVAS Z-INDEX so explosion is visible above genesis section
+                canvas.style.zIndex = '10';
                 
-                console.log(`💥 Explosion starting at center: ${explosionCenterX.toFixed(0)}, ${explosionCenterY.toFixed(0)}`);
+                // Explosion at center of canvas (canvas is fixed, so center is always visible)
+                explosionCenterX = canvas.width / 2;
+                explosionCenterY = canvas.height / 2; // Dead center of viewport
+                
+                console.log(`💥 Explosion at canvas center: ${explosionCenterX.toFixed(0)}, ${explosionCenterY.toFixed(0)}`);
                 
                 // Save scroll position
                 explosionScrollY = window.scrollY;
@@ -940,14 +951,14 @@
             const stargazingEnd = declarationEnd + windowHeight * 2;
             const genesisStart = stargazingEnd;
             
+            // Start black fade BEFORE genesis so it's 100% when verse 1 is centered
+            const blackFadeStart = genesisStart - (windowHeight * 0.15); // 285vh - starts 15vh earlier
+            
             // Update stargazing messages
             updateStargazingMessage();
             
-            // Fade to black starting at genesis section, full black by verse 2
-            const blackFadeStart = genesisStart; // Start at 300vh (genesis start)
-            
-            // Show genesis verses whenever we're in or near genesis section (ONLY before explosion)
-            if (scrollY > (genesisStart - windowHeight) && !explosionCompleted) {
+            // Show genesis verses whenever we're in or near genesis section (ONLY before explosion starts)
+            if (scrollY > (genesisStart - windowHeight) && !explosionCompleted && !explosionActive) {
                 const verses = document.querySelectorAll('.genesis-text');
                 verses.forEach((verse) => {
                     // Skip verse 3 if it hasn't been revealed yet
@@ -1284,10 +1295,13 @@
                     // BLACK FADES WITH WHITE - both fade together
                     fadeOverlay.style.opacity = whiteAlpha;
                     
-                    // Show verse 3 at 4s (it's already fixed to center of viewport)
+                    // Show verse 3 at 4s - at SAME position as verse 1 was (scrollable, not fixed)
                     if (explosionTimer >= 4) {
                         const verse3 = document.getElementById('verse-3');
                         verse3.style.display = 'block';
+                        verse3.style.position = 'absolute'; // Scrollable position like other verses
+                        verse3.style.top = '50vh'; // Same as verse 1
+                        verse3.style.zIndex = '20'; // Above everything
                         verse3.style.opacity = Math.min(1, (explosionTimer - 4) * 2); // Fade in verse
                     }
                 }
