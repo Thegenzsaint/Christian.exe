@@ -602,6 +602,54 @@
         
         // Star system
         const stars = [];
+        
+        // ===================================================================
+        // SPARKLE SYSTEM - Rare magical twinkles on random stars
+        // ===================================================================
+        let sparkleStars = []; // Stars currently sparkling
+        let nextSparkleTime = 0;
+        
+        // 8 different sparkle patterns (removed arrowhead/asymmetric)
+        const sparkleTypes = [
+            // Type 0: Classic 4-point star
+            { points: [[0,-1], [0.3,-0.3], [1,0], [0.3,0.3], [0,1], [-0.3,0.3], [-1,0], [-0.3,-0.3]] },
+            // Type 1: 8-point starburst
+            { points: [[0,-1], [0.2,-0.5], [0.7,-0.7], [0.5,-0.2], [1,0], [0.5,0.2], [0.7,0.7], [0.2,0.5], [0,1], [-0.2,0.5], [-0.7,0.7], [-0.5,0.2], [-1,0], [-0.5,-0.2], [-0.7,-0.7], [-0.2,-0.5]] },
+            // Type 2: Cross
+            { points: [[0,-1], [0.15,-0.15], [1,0], [0.15,0.15], [0,1], [-0.15,0.15], [-1,0], [-0.15,-0.15]] },
+            // Type 3: Plus sign
+            { points: [[0,-1], [0.1,-0.1], [0.1,0], [1,0], [0,0.1], [0,1], [-0.1,0], [-1,0], [0,-0.1]] },
+            // Type 4: Thin cross
+            { points: [[0,-1], [0,1]], extra: [[1,0], [-1,0]] },
+            // Type 5: X pattern
+            { points: [[0.7,-0.7], [-0.7,0.7]], extra: [[-0.7,-0.7], [0.7,0.7]] },
+            // Type 6: Small 6-point (ONLY for smallest stars)
+            { points: [[0,-1], [0.5,-0.3], [0.9,0.3], [0.3,0.9], [-0.3,0.9], [-0.9,0.3], [-0.5,-0.3]], onlySmallStars: true },
+            // Type 7: Double cross
+            { points: [[0,-0.9], [0.2,-0.2], [0.9,0], [0.2,0.2], [0,0.9], [-0.2,0.2], [-0.9,0], [-0.2,-0.2]] }
+        ];
+        
+        function addSparkle(star) {
+            // Filter sparkle types based on star size
+            const starBrightness = star.opacity || 0.5;
+            const isSmallStar = starBrightness < 0.6; // Dim/small stars
+            
+            // Get available patterns for this star
+            const availableTypes = sparkleTypes
+                .map((type, index) => ({ type, index }))
+                .filter(({ type }) => !type.onlySmallStars || isSmallStar);
+            
+            // Pick random type from available ones
+            const selectedPattern = availableTypes[Math.floor(Math.random() * availableTypes.length)];
+            
+            sparkleStars.push({
+                star: star,
+                type: selectedPattern.index,
+                startTime: time,
+                duration: 0.8 + Math.random() * 0.4, // 0.8-1.2 seconds
+                peakTime: 0.3 + Math.random() * 0.2 // Peak at 0.3-0.5 of duration
+            });
+        }
         const galaxies = [];
         let uap = null;
         let shootingStars = [];
@@ -1111,8 +1159,17 @@
             const parallaxFactor = 0.15; // Positive = stars move UP when you scroll DOWN
             
             stars.forEach(star => {
-                star.twinklePhase += star.twinkleSpeed;
-                const twinkle = Math.sin(star.twinklePhase) * 0.5 + 0.7; // More variation (was 0.3, now 0.5) - range 0.2 to 1.2
+                star.twinklePhase += star.twinkleSpeed * 0.594; // 8% faster (was 0.55)
+                // Random twinkle pattern - atmospheric shimmer with RANDOM INTENSITY per star
+                // Each star has its own rhythm + variation from "atmospheric turbulence"
+                // Random intensity factor unique to this star (stored on first access)
+                if (!star.twinkleIntensity) {
+                    star.twinkleIntensity = 0.5 + Math.random() * 0.5; // 0.5 to 1.0 (some stars twinkle more)
+                }
+                
+                const mainTwinkle = Math.sin(star.twinklePhase) * 0.3 * star.twinkleIntensity; // Scaled by intensity
+                const atmosphericShimmer = Math.sin(star.twinklePhase * 1.3 + star.x * 0.1) * 0.15 * star.twinkleIntensity; // Scaled by intensity
+                const twinkle = 0.7 + mainTwinkle + atmosphericShimmer; // Range varies per star!
                 
                 // Parallax: brighter/bigger stars move slower (closer), dimmer stars move faster (farther)
                 const depth = 1 - (star.opacity * 0.5); // 0 (close) to 0.5 (far)
@@ -1155,6 +1212,120 @@
                     ctx.arc(x, y + parallaxOffset, star.size, 0, Math.PI * 2);
                     ctx.fill();
                 });
+            });
+            
+            // ===================================================================
+            // SPARKLE RENDERING - Rare magical twinkles
+            // ===================================================================
+            
+            // SCATTERED RANDOM SPARKLES - each star has independent chance
+            if (!explosionActive) {
+                const allStars = [...stars, ...galaxies.flat()];
+                if (allStars.length > 0) {
+                    // Each frame, small random chance for ANY star to sparkle
+                    // MYTHICAL RARITY - 5% more frequent than previous
+                    const sparkleChance = 0.0000275625; // Per star, per frame (was 0.00002625, +5%)
+                    
+                    allStars.forEach(star => {
+                        // Random roll for this star
+                        if (Math.random() < sparkleChance) {
+                            // Check if this star is already sparkling
+                            const alreadySparkling = sparkleStars.some(s => s.star === star);
+                            if (!alreadySparkling) {
+                                addSparkle(star);
+                            }
+                        }
+                    });
+                }
+            }
+            
+            // Render active sparkles
+            sparkleStars = sparkleStars.filter(sparkle => {
+                const elapsed = time - sparkle.startTime;
+                if (elapsed > sparkle.duration) return false; // Remove finished sparkles
+                
+                const progress = elapsed / sparkle.duration;
+                const peakProgress = sparkle.peakTime;
+                
+                // Fade in then out (peak in middle)
+                let alpha;
+                if (progress < peakProgress) {
+                    alpha = progress / peakProgress; // 0 to 1
+                } else {
+                    alpha = 1 - ((progress - peakProgress) / (1 - peakProgress)); // 1 to 0
+                }
+                
+                const star = sparkle.star;
+                const pattern = sparkleTypes[sparkle.type];
+                
+                // Get star position (handle both regular stars and galaxy stars)
+                const scrollY = window.scrollY;
+                const parallaxFactor = 0.15;
+                let starX, starY;
+                
+                if (star.centerX !== undefined) {
+                    // Galaxy star
+                    const wobble = Math.sin(time + star.wobblePhase) * star.wobbleAmount;
+                    starX = star.centerX + Math.cos(star.angle) * star.radiusX + wobble;
+                    starY = star.centerY + Math.sin(star.angle) * star.radiusY + wobble * 0.5;
+                    const galaxyDepth = 0.7;
+                    starY += -scrollY * parallaxFactor * galaxyDepth;
+                } else {
+                    // Regular star
+                    const depth = 1 - (star.opacity * 0.5);
+                    starX = star.x;
+                    starY = star.y + (-scrollY * parallaxFactor * depth);
+                }
+                
+                // SCALED sparkle size based on star brightness
+                // Bigger/brighter stars get bigger sparkles (up to 4.5x max)
+                // Smaller stars limited to 2x
+                const baseStarSize = star.size || 1;
+                const starBrightness = star.opacity || 0.5; // 0 to 1
+                
+                // Brightness determines max sparkle multiplier
+                // Dim stars (0.2-0.5 opacity): 2x max
+                // Medium stars (0.5-0.8 opacity): 3.5x max  
+                // Bright stars (0.8-1.0 opacity): 4.5x max
+                const maxMultiplier = 2 + (starBrightness * 2.5); // 2 to 4.5
+                const sparkleMultiplier = 1 + Math.sin(progress * Math.PI) * (maxMultiplier - 1);
+                const sparkleSize = baseStarSize * sparkleMultiplier;
+                
+                // BRIGHTER - full white
+                ctx.save();
+                ctx.translate(starX, starY);
+                ctx.globalAlpha = alpha; // Full alpha
+                ctx.strokeStyle = 'rgba(255, 255, 255, 1)'; // Pure white
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.3)'; // Slight fill
+                ctx.lineWidth = 2; // Thicker lines
+                ctx.lineCap = 'round';
+                ctx.shadowBlur = 15; // Glow!
+                ctx.shadowColor = 'rgba(255, 255, 255, 0.8)';
+                
+                // Draw main sparkle pattern
+                ctx.beginPath();
+                pattern.points.forEach((point, i) => {
+                    const px = point[0] * sparkleSize;
+                    const py = point[1] * sparkleSize;
+                    if (i === 0) ctx.moveTo(px, py);
+                    else ctx.lineTo(px, py);
+                });
+                ctx.closePath();
+                ctx.stroke();
+                ctx.fill();
+                
+                // Draw extra lines if pattern has them
+                if (pattern.extra) {
+                    pattern.extra.forEach(line => {
+                        ctx.beginPath();
+                        ctx.moveTo(line[0][0] * sparkleSize, line[0][1] * sparkleSize);
+                        ctx.lineTo(line[1][0] * sparkleSize, line[1][1] * sparkleSize);
+                        ctx.stroke();
+                    });
+                }
+                
+                ctx.restore();
+                return true; // Keep sparkle active
             });
             
             // Render shooting stars
@@ -1209,12 +1380,17 @@
                         }
                     }
                     
-                    // Render UAP
+                    // Render UAP with PARALLAX
+                    const scrollY = window.scrollY;
+                    const parallaxFactor = 0.15;
+                    const uapDepth = 0.8; // Similar to galaxies - distant
+                    const uapParallaxOffset = -scrollY * parallaxFactor * uapDepth;
+                    
                     ctx.fillStyle = `rgba(100, 200, 255, ${uap.opacity * 0.9})`;
                     ctx.shadowBlur = 8;
                     ctx.shadowColor = 'rgba(100, 200, 255, 0.6)';
                     ctx.beginPath();
-                    ctx.arc(uap.x, uap.y, 3, 0, Math.PI * 2);
+                    ctx.arc(uap.x, uap.y + uapParallaxOffset, 3, 0, Math.PI * 2);
                     ctx.fill();
                     ctx.shadowBlur = 0;
                 }
