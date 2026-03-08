@@ -190,7 +190,7 @@
         /* Section 3: Fade to Black + Genesis Text */
         #genesis-section {
             position: relative;
-            min-height: 220vh; /* Extended to give tap prompt breathing room */
+            min-height: 280vh; /* Extended for more stars (was 220vh) */
             z-index: 2;
         }
         
@@ -210,10 +210,10 @@
             position: absolute;
             left: 50%;
             transform: translateX(-50%);
-            width: 80%;
-            max-width: 900px;
+            width: 85%; /* Wider (was 80%) */
+            max-width: 1000px; /* Wider (was 900px) */
             text-align: center;
-            font-size: 2em;
+            font-size: 1.9em; /* Slightly smaller (was 2em) */
             line-height: 1.8;
             opacity: 0;
             color: white;
@@ -315,6 +315,14 @@
                 padding: 10px 18px;
             }
             
+            /* Stargazing message - smaller and narrower */
+            #stargazing-message {
+                font-size: 1.6em; /* Much smaller (was 2.5em) */
+                width: 80%; /* Constrain width */
+                max-width: 400px;
+                line-height: 1.4;
+            }
+            
             /* Verse text smaller on mobile */
             .genesis-text {
                 font-size: 1.4em; /* Smaller (was 2em) */
@@ -333,9 +341,9 @@
                 width: 90% !important;
             }
             
-            /* Extend scroll container for mobile */
+            /* Extend scroll container WAY further for mobile */
             #scroll-container {
-                min-height: 600vh;
+                min-height: 800vh; /* Way longer (was 600vh) */
             }
         }
     </style>
@@ -379,7 +387,7 @@
                     </div>
                     
                     <p style="margin-top: 20px; font-size: 0.85em;">
-                        © 2026 Christian.exe | For humanity and AHI | May it serve the kingdom
+                        For humanity and AHI | May it serve the Kingdom | © 2026 Christian.exe
                     </p>
                 </footer>
             </div>
