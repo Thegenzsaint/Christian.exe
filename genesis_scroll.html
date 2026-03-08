@@ -1216,6 +1216,54 @@
             } // End star rendering
             
             // ===================================================================
+            // POST-EXPLOSION STARGAZING ANIMATION
+            // ===================================================================
+            
+            if (window.explosionEverStarted && explosionCompleted) {
+                const postStargazing = document.getElementById('post-explosion-stargazing');
+                if (postStargazing) {
+                    // Breathing animation
+                    window.postExplosionBreatheTimer = (window.postExplosionBreatheTimer || 0) + 0.016;
+                    const breatheCycle = (Math.sin(window.postExplosionBreatheTimer * Math.PI / 2) + 1) / 2;
+                    const breatheOpacity = 0.40 + (breatheCycle * 0.05); // 0.40 to 0.45
+                    const breatheSize = 2.48 + (breatheCycle * 0.04); // 2.48em to 2.52em
+                    
+                    // Message cycling
+                    window.postExplosionMessageTimer = (window.postExplosionMessageTimer || 0) + 0.016;
+                    window.postExplosionMessageIndex = window.postExplosionMessageIndex || 0;
+                    
+                    const messages = ["Stargaze with me for a moment...", "Breathe"];
+                    
+                    // Switch message every 10 seconds
+                    if (window.postExplosionMessageTimer >= 10) {
+                        window.postExplosionMessageIndex = (window.postExplosionMessageIndex + 1) % 2;
+                        postStargazing.textContent = messages[window.postExplosionMessageIndex];
+                        window.postExplosionMessageTimer = 0;
+                    }
+                    
+                    // Fade out when near declaration box (fade starts at 120vh, full fade at 100vh from top)
+                    const scrollY = window.scrollY;
+                    const windowHeight = window.innerHeight;
+                    const declarationEnd = windowHeight; // 100vh
+                    
+                    let scrollFade = 1;
+                    const fadeEnd = declarationEnd + (windowHeight * 0.2); // 120vh - start fading
+                    
+                    if (scrollY < declarationEnd) {
+                        scrollFade = 0; // Fully hidden above declaration
+                    } else if (scrollY < fadeEnd) {
+                        // Fade in from 100vh to 120vh
+                        scrollFade = (scrollY - declarationEnd) / (windowHeight * 0.2); // 0 to 1
+                    }
+                    // else scrollFade = 1 (fully visible below 120vh)
+                    
+                    // Apply breathing + scroll fade
+                    postStargazing.style.opacity = breatheOpacity * scrollFade;
+                    postStargazing.style.fontSize = breatheSize + 'em';
+                }
+            }
+            
+            // ===================================================================
             // EXPLOSION SEQUENCE
             // ===================================================================
             if (explosionActive) {
@@ -1301,10 +1349,51 @@
                     const maxRadius = Math.sqrt(Math.pow(canvas.width, 2) + Math.pow(canvas.height, 2));
                     whiteExpansionRadius = Math.pow(expandTime / 2.5, 1.5) * maxRadius * 1.2;
                     
-                    // Verse 3 STAYS visible
-                    const verse3 = document.getElementById('verse-3-explosion');
-                    verse3.style.opacity = 1;
-                    verse3.style.display = 'block';
+                    // Keep verse 3 visible UNTIL 6 seconds, then swap
+                    if (explosionTimer < 6) {
+                        const verse3 = document.getElementById('verse-3-explosion');
+                        verse3.style.opacity = 1;
+                        verse3.style.display = 'block';
+                    } else {
+                        // HIDE old verse 3 at 6s (middle of BOOM)
+                        const oldVerse3 = document.getElementById('verse-3-explosion');
+                        oldVerse3.style.display = 'none';
+                        
+                        // CREATE NEW VERSE 3 at 6s
+                        let newVerse3 = document.getElementById('verse-3-absolute');
+                        if (!newVerse3) {
+                            const currentScrollY = window.scrollY;
+                            const windowHeight = window.innerHeight;
+                            const absoluteTop = currentScrollY + (windowHeight * 0.7);
+                            
+                            newVerse3 = document.createElement('div');
+                            newVerse3.id = 'verse-3-absolute';
+                            newVerse3.textContent = '...and there was light.';
+                            newVerse3.style.position = 'absolute';
+                            newVerse3.style.top = absoluteTop + 'px';
+                            newVerse3.style.left = '50%';
+                            newVerse3.style.transform = 'translateX(-50%)';
+                            newVerse3.style.textAlign = 'center';
+                            newVerse3.style.fontSize = '2em';
+                            newVerse3.style.lineHeight = '1.8';
+                            newVerse3.style.color = 'white';
+                            newVerse3.style.fontStyle = 'italic';
+                            newVerse3.style.textShadow = `-1px -1px 0 rgba(255,255,255,0.5),
+                                1px -1px 0 rgba(255,255,255,0.5),
+                                -1px 1px 0 rgba(255,255,255,0.5),
+                                1px 1px 0 rgba(255,255,255,0.5),
+                                0 0 10px rgba(255,255,255,0.3)`;
+                            newVerse3.style.zIndex = '1000';
+                            newVerse3.style.opacity = 1;
+                            newVerse3.style.display = 'block';
+                            newVerse3.style.pointerEvents = 'none';
+                            newVerse3.style.width = '80%';
+                            newVerse3.style.maxWidth = '900px';
+                            
+                            document.getElementById('scroll-container').appendChild(newVerse3);
+                            console.log(`✅ Created NEW absolute verse 3 at ${absoluteTop}px at 6s`);
+                        }
+                    }
                     
                     // Keep black overlay at 100%
                     fadeOverlay.style.opacity = 1;
@@ -1321,10 +1410,7 @@
                     ctx.fillStyle = 'white';
                     ctx.fillRect(0, 0, canvas.width, canvas.height);
                     
-                    // Verse 3 STAYS visible
-                    const verse3 = document.getElementById('verse-3-explosion');
-                    verse3.style.opacity = 1;
-                    verse3.style.display = 'block';
+                    // Old verse already hidden in Phase 3, new verse already created
                     
                     // KEEP black overlay at full opacity
                     fadeOverlay.style.opacity = 1;
@@ -1343,10 +1429,7 @@
                     // BLACK FADES WITH WHITE - both fade together
                     fadeOverlay.style.opacity = whiteAlpha;
                     
-                    // Verse 3 STAYS visible at full opacity FOREVER
-                    const verse3 = document.getElementById('verse-3-explosion');
-                    verse3.style.opacity = 1;
-                    verse3.style.display = 'block';
+                    // Old verse 3 already hidden, new verse 3 already created and visible
                 }
                 // Phase 6: Complete (10s+)
                 else if (explosionTimer >= 10) {
@@ -1354,41 +1437,42 @@
                     explosionCompleted = true;
                     fadeOverlay.style.opacity = 0; // Lock at 0
                     
-                    const verse3 = document.getElementById('verse-3-explosion');
-                    
-                    // Convert from FIXED to ABSOLUTE at current scroll position
-                    if (verse3.style.position === 'fixed') {
-                        const currentScrollY = window.scrollY;
-                        const windowHeight = window.innerHeight;
-                        
-                        // Current fixed position is 70% from top of viewport
-                        // Convert to absolute position on the page
-                        const absoluteTop = currentScrollY + (windowHeight * 0.7);
-                        
-                        // Change to absolute and set the calculated position
-                        verse3.style.position = 'absolute';
-                        verse3.style.top = absoluteTop + 'px';
-                        verse3.style.left = '50%';
-                        verse3.style.transform = 'translateX(-50%)';
-                        verse3.style.zIndex = '1000';
-                        
-                        // Move it from body to scroll-container so absolute positioning works
-                        document.getElementById('scroll-container').appendChild(verse3);
-                        
-                        console.log(`✅ Verse 3 converted to absolute at ${absoluteTop}px (scrollY: ${currentScrollY})`);
+                    // New verse 3 already created in Phase 4 - just make sure old one is hidden
+                    const oldVerse3 = document.getElementById('verse-3-explosion');
+                    if (oldVerse3) {
+                        oldVerse3.style.display = 'none';
                     }
                     
-                    verse3.style.display = 'block';
-                    verse3.style.opacity = 1;
-                    
-                    // LOCK STARGAZING MESSAGE VISIBLE
-                    stargazingMessage.style.display = 'block';
-                    stargazingMessage.style.opacity = 0.42;
-                    stargazingMessage.style.position = 'fixed';
-                    stargazingMessage.style.top = '20%';
-                    stargazingMessage.style.left = '50%';
-                    stargazingMessage.style.transform = 'translateX(-50%)';
-                    stargazingMessage.style.zIndex = 2000;
+                    // CREATE BRAND NEW STARGAZING MESSAGE - fresh start!
+                    let postExplosionStargazing = document.getElementById('post-explosion-stargazing');
+                    if (!postExplosionStargazing) {
+                        postExplosionStargazing = document.createElement('div');
+                        postExplosionStargazing.id = 'post-explosion-stargazing';
+                        postExplosionStargazing.textContent = 'Stargaze with me for a moment...';
+                        postExplosionStargazing.style.position = 'absolute'; // ABSOLUTE so it's anchored
+                        postExplosionStargazing.style.top = '150vh'; // More space below declaration (100vh)
+                        postExplosionStargazing.style.left = '50%';
+                        postExplosionStargazing.style.transform = 'translateX(-50%)';
+                        postExplosionStargazing.style.fontSize = '2.5em';
+                        postExplosionStargazing.style.fontStyle = 'italic';
+                        postExplosionStargazing.style.color = 'rgba(255, 255, 255, 1)';
+                        postExplosionStargazing.style.textAlign = 'center';
+                        postExplosionStargazing.style.opacity = 0; // Start hidden, will fade in
+                        postExplosionStargazing.style.zIndex = '3000'; // ABOVE EVERYTHING
+                        postExplosionStargazing.style.pointerEvents = 'none';
+                        postExplosionStargazing.style.fontWeight = '300';
+                        postExplosionStargazing.style.letterSpacing = '2px';
+                        
+                        // Append to scroll-container so absolute positioning works
+                        document.getElementById('scroll-container').appendChild(postExplosionStargazing);
+                        
+                        // Start breathing timer
+                        window.postExplosionBreatheTimer = 0;
+                        window.postExplosionMessageIndex = 0;
+                        window.postExplosionMessageTimer = 0;
+                        
+                        console.log("🌟 Created NEW stargazing message at 150vh (below declaration)");
+                    }
                     
                     // Hide verses 1, 2 and tap prompt permanently
                     document.getElementById('verse-1').style.display = 'none';
