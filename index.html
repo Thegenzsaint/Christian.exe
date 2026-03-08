@@ -150,11 +150,33 @@
             text-align: center;
             max-height: 400px;
             overflow-y: auto;
+            -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
             padding: 20px;
             background: #f8f9fa;
             border-radius: 5px;
             font-size: 0.95em;
             line-height: 1.7;
+        }
+        
+        /* Mobile: make scrollbar more visible */
+        @media (max-width: 768px) {
+            .content {
+                max-height: 300px; /* Shorter on mobile */
+            }
+            
+            .content::-webkit-scrollbar {
+                width: 8px; /* Visible scrollbar */
+            }
+            
+            .content::-webkit-scrollbar-track {
+                background: #e0e0e0;
+                border-radius: 4px;
+            }
+            
+            .content::-webkit-scrollbar-thumb {
+                background: #0070c0;
+                border-radius: 4px;
+            }
         }
         
         footer {
@@ -251,7 +273,7 @@
         /* Scroll hint at bottom of declaration */
         .scroll-hint {
             position: absolute;
-            bottom: 40px;
+            bottom: 20px; /* Lower (was 40px) */
             left: 50%;
             transform: translateX(-50%);
             font-size: 1em;
@@ -267,7 +289,7 @@
         /* Stargazing messages */
         #stargazing-message {
             position: fixed;
-            top: 50%;
+            top: 40%; /* Higher (was 50%) */
             left: 50%;
             transform: translate(-50%, -50%);
             font-size: 2.5em;
@@ -321,58 +343,67 @@
                 line-height: 1.6;
             }
             
-            /* Stargazing section - EVEN BIGGER on mobile */
+            /* Stargazing section - appropriate size */
             #stargazing-section {
-                height: 220vh !important; /* Even bigger (was 180vh) */
+                height: 180vh !important; /* Good breathing room */
             }
             
-            /* Genesis section - tight to center tap prompt */
+            /* Genesis section - calculated for centered tap prompt */
             #genesis-section {
-                min-height: 200vh !important; /* Tighter (was 300vh) - centers tap prompt */
+                min-height: 180vh !important; /* Tight - calculated below */
             }
             
-            /* Stargazing message - even bigger, 2 lines, flows naturally */
+            /* Stargazing message - bigger, 2 lines, flows naturally */
             #stargazing-message {
-                font-size: 1.171875em !important; /* 25% bigger (was 0.9375em, now 0.9375*1.25) */
-                width: 320px !important; /* Wider to match bigger text */
+                font-size: 1.171875em !important;
+                width: 320px !important;
                 max-width: 320px !important;
                 line-height: 1.2 !important;
-                /* Removed fixed positioning - let it flow naturally */
             }
             
-            /* Tap prompt - ONE LINE and positioned evenly between verses */
-            #tap-prompt {
-                font-size: 1em !important; /* Smaller to fit one line */
-                top: 140vh !important; /* Moved down with verses */
-                white-space: nowrap !important; /* Force one line */
-            }
-            
-            /* Verse 1 - moved down to use black space */
+            /* Verses positioned to fill space evenly */
             #verse-1 {
-                top: 30vh !important; /* Moved down (was 10vh) */
+                top: 25vh !important; /* Start of genesis content */
             }
             
-            /* Verse 2 - moved down to use black space */
             #verse-2 {
-                top: 90vh !important; /* Moved down (was 70vh) */
+                top: 75vh !important; /* Even gap from v1 */
             }
+            
+            /* Tap prompt - centered in remaining space */
+            #tap-prompt {
+                font-size: 1em !important;
+                top: 125vh !important; /* Even gap from v2, centered before end */
+                white-space: nowrap !important;
+            }
+            
+            /* 
+            Mobile calculation:
+            - White box: 0-100vh
+            - Stargazing: 100-280vh (180vh)
+            - Genesis starts: 280vh
+            - Verse 1: 280 + 25 = 305vh
+            - Verse 2: 280 + 75 = 355vh  
+            - Tap prompt: 280 + 125 = 405vh
+            - End: 280 + 180 = 460vh (55vh after tap = centered!)
+            */
             
             /* Verse text smaller on mobile */
             .genesis-text {
-                font-size: 1.4em; /* Smaller (was 2em) */
-                width: 90%; /* Wider to use more screen */
+                font-size: 1.4em;
+                width: 90%;
                 line-height: 1.6;
             }
             
             /* Tap prompt smaller */
             #tap-prompt {
-                font-size: 1.2em; /* Smaller (was 1.8em) */
+                font-size: 1.2em;
             }
             
-            /* Post-explosion stargazing text - same formatting as pre-explosion */
+            /* Post-explosion stargazing - same formatting as pre-explosion */
             #post-explosion-stargazing {
-                font-size: 1.171875em !important; /* Same as pre-explosion stargazing */
-                width: 320px !important; /* Same narrow width for 2-line wrap */
+                font-size: 1.171875em !important;
+                width: 320px !important;
                 max-width: 320px !important;
                 line-height: 1.2 !important;
             }
@@ -1326,7 +1357,7 @@
                 currentOpacity = 0; // Start at 0
                 entryDelay = 0.3; // Wait 0.3 seconds before fading in
                 stargazingMessage.textContent = messages[0];
-                stargazingMessage.style.top = '50%';
+                stargazingMessage.style.top = '40%'; // Higher (was 50%)
                 stargazingMessage.style.opacity = 0; // Explicitly start hidden
             }
             
@@ -1339,7 +1370,7 @@
                 // Only hide if explosion hasn't started
                 if (!window.explosionEverStarted) {
                     stargazingMessage.style.opacity = 0;
-                    stargazingMessage.style.top = '50%';
+                    stargazingMessage.style.top = '40%'; // Higher (was 50%)
                 }
                 messageTimer = 0;
                 isTransitioning = false;
@@ -1365,7 +1396,7 @@
             
             // Move message up as scrolling
             const verticalOffset = stargazingProgress * 30;
-            stargazingMessage.style.top = `${50 - verticalOffset}%`;
+            stargazingMessage.style.top = `${40 - verticalOffset}%`; // Start from 40% (was 50%)
             
             // If transitioning, handle that
             if (isTransitioning) {
@@ -2300,7 +2331,7 @@
             } // End star rendering
             
             // ===================================================================
-            // POST-EXPLOSION STARGAZING ANIMATION
+            // POST-EXPLOSION STARGAZING ANIMATION (absolute at 120vh)
             // ===================================================================
             
             if (window.explosionEverStarted && explosionCompleted) {
@@ -2312,38 +2343,74 @@
                     const breatheOpacity = 0.40 + (breatheCycle * 0.05); // 0.40 to 0.45
                     const breatheSize = 2.48 + (breatheCycle * 0.04); // 2.48em to 2.52em
                     
-                    // Message cycling
-                    window.postExplosionMessageTimer = (window.postExplosionMessageTimer || 0) + 0.016;
-                    window.postExplosionMessageIndex = window.postExplosionMessageIndex || 0;
+                    // Calculate scroll-based fade (starts closer to white box)
+                    const scrollY = window.scrollY;
+                    const windowHeight = window.innerHeight;
+                    const whiteBoxEnd = windowHeight; // 100vh
+                    
+                    // Fade out ONLY when white box coming into view (120vh → 100vh)
+                    // Shorter fade range = fade starts closer to white box
+                    let scrollFadeMultiplier = 1.0;
+                    
+                    if (scrollY < windowHeight * 1.2) { // Below 120vh
+                        // Fade from 1.0 at 120vh to 0 at 100vh
+                        const fadeRange = windowHeight * 0.2; // 20vh fade range (was 50vh)
+                        const distanceFromWhiteBox = scrollY - whiteBoxEnd;
+                        scrollFadeMultiplier = Math.max(0, Math.min(1, distanceFromWhiteBox / fadeRange));
+                    }
                     
                     const messages = ["Stargaze with me for a moment...", "Breathe"];
                     
-                    // Switch message every 10 seconds
-                    if (window.postExplosionMessageTimer >= 10) {
-                        window.postExplosionMessageIndex = (window.postExplosionMessageIndex + 1) % 2;
-                        postStargazing.textContent = messages[window.postExplosionMessageIndex];
-                        window.postExplosionMessageTimer = 0;
+                    // EXACT SAME TRANSITION LOGIC AS PRE-EXPLOSION
+                    if (window.postExplosionTransitioning) {
+                        window.postExplosionTransitionTimer += 0.016;
+                        
+                        // Phase 1: Fade out (0 to 2 seconds)
+                        if (window.postExplosionTransitionTimer < 2) {
+                            window.postExplosionCurrentOpacity = 1 - (window.postExplosionTransitionTimer / 2);
+                            postStargazing.style.opacity = window.postExplosionCurrentOpacity * breatheOpacity * scrollFadeMultiplier;
+                            postStargazing.style.fontSize = breatheSize + 'em';
+                        }
+                        // Phase 2: Wait (2 to 3 seconds)
+                        else if (window.postExplosionTransitionTimer < 3) {
+                            window.postExplosionCurrentOpacity = 0;
+                            postStargazing.style.opacity = 0;
+                        }
+                        // Phase 3: Change text (exactly at 3 seconds)
+                        else if (window.postExplosionTransitionTimer >= 3 && window.postExplosionTransitionTimer < 3.02) {
+                            window.postExplosionMessageIndex = (window.postExplosionMessageIndex + 1) % messages.length;
+                            postStargazing.textContent = messages[window.postExplosionMessageIndex];
+                        }
+                        // Phase 4: Fade in (3 to 5 seconds)
+                        else if (window.postExplosionTransitionTimer < 5) {
+                            window.postExplosionCurrentOpacity = (window.postExplosionTransitionTimer - 3) / 2;
+                            postStargazing.style.opacity = window.postExplosionCurrentOpacity * breatheOpacity * scrollFadeMultiplier;
+                            postStargazing.style.fontSize = breatheSize + 'em';
+                        }
+                        // Phase 5: Complete (5+ seconds)
+                        else {
+                            window.postExplosionCurrentOpacity = 1;
+                            postStargazing.style.opacity = breatheOpacity * scrollFadeMultiplier;
+                            postStargazing.style.fontSize = breatheSize + 'em';
+                            window.postExplosionTransitioning = false;
+                            window.postExplosionTransitionTimer = 0;
+                            window.postExplosionMessageTimer = 0;
+                        }
                     }
-                    
-                    // Fade out when near declaration box (fade starts at 120vh, full fade at 100vh from top)
-                    const scrollY = window.scrollY;
-                    const windowHeight = window.innerHeight;
-                    const declarationEnd = windowHeight; // 100vh
-                    
-                    let scrollFade = 1;
-                    const fadeEnd = declarationEnd + (windowHeight * 0.2); // 120vh - start fading
-                    
-                    if (scrollY < declarationEnd) {
-                        scrollFade = 0; // Fully hidden above declaration
-                    } else if (scrollY < fadeEnd) {
-                        // Fade in from 100vh to 120vh
-                        scrollFade = (scrollY - declarationEnd) / (windowHeight * 0.2); // 0 to 1
+                    // Normal display - count to 10 seconds
+                    else {
+                        window.postExplosionMessageTimer += 0.016;
+                        
+                        // Apply breathing + scroll fade
+                        postStargazing.style.opacity = breatheOpacity * scrollFadeMultiplier;
+                        postStargazing.style.fontSize = breatheSize + 'em';
+                        
+                        // Start transition after 10 seconds
+                        if (window.postExplosionMessageTimer >= 10) {
+                            window.postExplosionTransitioning = true;
+                            window.postExplosionTransitionTimer = 0;
+                        }
                     }
-                    // else scrollFade = 1 (fully visible below 120vh)
-                    
-                    // Apply breathing + scroll fade
-                    postStargazing.style.opacity = breatheOpacity * scrollFade;
-                    postStargazing.style.fontSize = breatheSize + 'em';
                 }
             }
             
@@ -2623,7 +2690,9 @@
                     // AUTO-SCROLL during white flash - move up to just below stargazing
                     if (!window.whiteFlashScrollDone) {
                         const windowHeight = window.innerHeight;
-                        const targetScroll = windowHeight * 1.55; // 155vh - stargazing completely out of frame
+                        const isMobile = window.innerWidth <= 768;
+                        // Mobile: scroll to 180vh (in stargazing), Desktop: 155vh
+                        const targetScroll = isMobile ? windowHeight * 1.8 : windowHeight * 1.55;
                         
                         window.scrollTo({
                             top: targetScroll,
@@ -2661,45 +2730,50 @@
                     explosionCompleted = true;
                     fadeOverlay.style.opacity = 0; // Lock at 0
                     
+                    // RESET canvas z-index back to 0 (behind content)
+                    canvas.style.zIndex = '0';
+                    
                     // New verse 3 already created in Phase 4 - just make sure old one is hidden
                     const oldVerse3 = document.getElementById('verse-3-explosion');
                     if (oldVerse3) {
                         oldVerse3.style.display = 'none';
                     }
                     
-                    // CREATE BRAND NEW STARGAZING MESSAGE - fresh start!
+                    // CREATE POST-EXPLOSION STARGAZING at 140vh absolute (sits in scroll)
                     let postExplosionStargazing = document.getElementById('post-explosion-stargazing');
                     if (!postExplosionStargazing) {
                         postExplosionStargazing = document.createElement('div');
                         postExplosionStargazing.id = 'post-explosion-stargazing';
                         postExplosionStargazing.textContent = 'Stargaze with me for a moment...';
                         postExplosionStargazing.style.position = 'absolute'; // ABSOLUTE - sits in scroll
-                        
-                        // Position in scroll - just under white box area with breathing room
-                        postExplosionStargazing.style.top = '150vh'; // Space after white box (100vh)
+                        postExplosionStargazing.style.top = '140vh'; // Higher (was 160vh)
                         postExplosionStargazing.style.left = '50%';
                         postExplosionStargazing.style.transform = 'translateX(-50%)';
-                        
-                        // Desktop default styling (mobile overridden in CSS)
                         postExplosionStargazing.style.fontSize = '2.5em';
                         postExplosionStargazing.style.fontStyle = 'italic';
                         postExplosionStargazing.style.color = 'rgba(255, 255, 255, 1)';
                         postExplosionStargazing.style.textAlign = 'center';
-                        postExplosionStargazing.style.opacity = 0.42; // Visible like pre-explosion
-                        postExplosionStargazing.style.zIndex = '3000'; // ABOVE EVERYTHING
+                        postExplosionStargazing.style.opacity = 0.42;
+                        postExplosionStargazing.style.zIndex = '3000';
                         postExplosionStargazing.style.pointerEvents = 'none';
                         postExplosionStargazing.style.fontWeight = '300';
                         postExplosionStargazing.style.letterSpacing = '2px';
-                        
-                        // Append to scroll-container so it scrolls with page
                         document.getElementById('scroll-container').appendChild(postExplosionStargazing);
                         
-                        // Start breathing timer
-                        window.postExplosionBreatheTimer = 0;
+                        // Initialize transition variables
                         window.postExplosionMessageIndex = 0;
                         window.postExplosionMessageTimer = 0;
-                        
-                        console.log("🌟 Created NEW stargazing message at 150vh (below declaration)");
+                        window.postExplosionTransitioning = false;
+                        window.postExplosionTransitionTimer = 0;
+                        window.postExplosionCurrentOpacity = 1;
+                        console.log("🌟 Created post-explosion stargazing at 140vh (absolute)");
+                    }
+                    
+                    // Hide PRE-explosion stargazing message
+                    const preExplosionMsg = document.getElementById('stargazing-message');
+                    if (preExplosionMsg) {
+                        preExplosionMsg.style.opacity = 0;
+                        preExplosionMsg.style.display = 'none';
                     }
                     
                     // Hide verses 1, 2 and tap prompt permanently
