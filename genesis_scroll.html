@@ -1304,10 +1304,10 @@
                     // Keep black overlay at 100% during fade-in
                     fadeOverlay.style.opacity = 1;
                 }
-                // Phase 1: Small bright dot appears at center (2.5-3s)
+                // Phase 1: Tiny dot appears at center (2.5-3s)
                 else if (explosionTimer >= 2.5 && explosionTimer < 3) {
                     const dotProgress = (explosionTimer - 2.5) / 0.5; // 0 to 1
-                    const dotSize = 2 + (dotProgress * 3); // Grows from 2px to 5px
+                    const dotSize = 0.5 + (dotProgress * 0.5); // Grows from 0.5px to 1px (TINY)
                     
                     // Verse 3 at full opacity - STAYS FOREVER
                     const verse3 = document.getElementById('verse-3-explosion');
@@ -1317,21 +1317,44 @@
                     // Keep black overlay at 100%
                     fadeOverlay.style.opacity = 1;
                     
-                    // Bright white dot with glow
+                    // Bright white dot with soft glow
                     ctx.fillStyle = 'white';
-                    ctx.shadowBlur = 15;
+                    ctx.shadowBlur = 10;
                     ctx.shadowColor = 'white';
                     ctx.beginPath();
                     ctx.arc(centerX, centerY, dotSize, 0, Math.PI * 2);
                     ctx.fill();
                     ctx.shadowBlur = 0;
                 }
-                // Phase 2: Dot BREATHES - bigger, smaller, bigger (3-4.5s)
+                // Phase 2: Dot BREATHES - progressively GROWING with each breath (3-4.5s)
                 else if (explosionTimer >= 3 && explosionTimer < 4.5) {
-                    const breatheTime = explosionTimer - 3; // 0 to 1.5
-                    // Two breaths: 0-0.75s and 0.75-1.5s
-                    const breatheCycle = Math.sin(breatheTime * 2 * Math.PI / 0.75); // -1 to 1
-                    const dotSize = 5 + (breatheCycle * 3); // 2px to 8px pulsing
+                    const breatheTime = explosionTimer - 3; // 0 to 1.5s
+                    
+                    // THREE progressive breaths - each one BIGGER
+                    // Breath 1: 0-0.5s, Breath 2: 0.5-1.0s, Breath 3: 1.0-1.5s
+                    let breathPhase = Math.floor(breatheTime / 0.5); // 0, 1, or 2
+                    let breathProgress = (breatheTime % 0.5) / 0.5; // 0 to 1 within each breath
+                    
+                    // Sine wave for smooth breathing
+                    const breatheCycle = Math.sin(breathProgress * Math.PI); // 0 → 1 → 0
+                    
+                    // Base sizes for each breath (DOUBLING each time)
+                    let minSize, maxSize;
+                    if (breathPhase === 0) {
+                        // Breath 1: Small (1px to 2px)
+                        minSize = 1;
+                        maxSize = 2;
+                    } else if (breathPhase === 1) {
+                        // Breath 2: Double (2px to 4px)
+                        minSize = 2;
+                        maxSize = 4;
+                    } else {
+                        // Breath 3: Max (4px to 8px)
+                        minSize = 4;
+                        maxSize = 8;
+                    }
+                    
+                    const dotSize = minSize + (breatheCycle * (maxSize - minSize));
                     
                     // Verse 3 STAYS visible
                     const verse3 = document.getElementById('verse-3-explosion');
@@ -1341,9 +1364,10 @@
                     // Keep black overlay at 100%
                     fadeOverlay.style.opacity = 1;
                     
-                    // Pulsing white dot
+                    // Pulsing white dot with growing intensity
+                    const glowIntensity = 15 + (breathPhase * 10); // Glow grows with each breath
                     ctx.fillStyle = 'white';
-                    ctx.shadowBlur = 20 + (breatheCycle * 10);
+                    ctx.shadowBlur = glowIntensity + (breatheCycle * 15);
                     ctx.shadowColor = 'white';
                     ctx.beginPath();
                     ctx.arc(centerX, centerY, dotSize, 0, Math.PI * 2);
