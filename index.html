@@ -190,7 +190,7 @@
         /* Section 3: Fade to Black + Genesis Text */
         #genesis-section {
             position: relative;
-            min-height: 230vh; /* Adjusted for centered tap prompt (was 280vh) */
+            min-height: 230vh; /* Reduced to center tap prompt (was 250vh) */
             z-index: 2;
         }
         
@@ -326,9 +326,9 @@
                 height: 220vh !important; /* Even bigger (was 180vh) */
             }
             
-            /* Genesis section - perfectly sized so tap prompt is centered */
+            /* Genesis section - tight to center tap prompt */
             #genesis-section {
-                min-height: 170vh !important; /* Tighter (was 200vh) - tap prompt centered */
+                min-height: 200vh !important; /* Tighter (was 300vh) - centers tap prompt */
             }
             
             /* Stargazing message - even bigger, 2 lines, flows naturally */
@@ -369,10 +369,12 @@
                 font-size: 1.2em; /* Smaller (was 1.8em) */
             }
             
-            /* Post-explosion stargazing text */
+            /* Post-explosion stargazing text - same formatting as pre-explosion */
             #post-explosion-stargazing {
-                font-size: 1.4em !important; /* Smaller (matches verses) */
-                width: 90% !important;
+                font-size: 1.171875em !important; /* Same as pre-explosion stargazing */
+                width: 320px !important; /* Same narrow width for 2-line wrap */
+                max-width: 320px !important;
+                line-height: 1.2 !important;
             }
         }
     </style>
@@ -2671,21 +2673,25 @@
                         postExplosionStargazing = document.createElement('div');
                         postExplosionStargazing.id = 'post-explosion-stargazing';
                         postExplosionStargazing.textContent = 'Stargaze with me for a moment...';
-                        postExplosionStargazing.style.position = 'absolute'; // ABSOLUTE so it's anchored
-                        postExplosionStargazing.style.top = '150vh'; // More space below declaration (100vh)
+                        postExplosionStargazing.style.position = 'absolute'; // ABSOLUTE - sits in scroll
+                        
+                        // Position in scroll - just under white box area with breathing room
+                        postExplosionStargazing.style.top = '150vh'; // Space after white box (100vh)
                         postExplosionStargazing.style.left = '50%';
                         postExplosionStargazing.style.transform = 'translateX(-50%)';
+                        
+                        // Desktop default styling (mobile overridden in CSS)
                         postExplosionStargazing.style.fontSize = '2.5em';
                         postExplosionStargazing.style.fontStyle = 'italic';
                         postExplosionStargazing.style.color = 'rgba(255, 255, 255, 1)';
                         postExplosionStargazing.style.textAlign = 'center';
-                        postExplosionStargazing.style.opacity = 0; // Start hidden, will fade in
+                        postExplosionStargazing.style.opacity = 0.42; // Visible like pre-explosion
                         postExplosionStargazing.style.zIndex = '3000'; // ABOVE EVERYTHING
                         postExplosionStargazing.style.pointerEvents = 'none';
                         postExplosionStargazing.style.fontWeight = '300';
                         postExplosionStargazing.style.letterSpacing = '2px';
                         
-                        // Append to scroll-container so absolute positioning works
+                        // Append to scroll-container so it scrolls with page
                         document.getElementById('scroll-container').appendChild(postExplosionStargazing);
                         
                         // Start breathing timer
