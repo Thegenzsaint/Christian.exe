@@ -212,7 +212,7 @@
         /* Section 3: Fade to Black + Genesis Text */
         #genesis-section {
             position: relative;
-            min-height: 230vh; /* Reduced to center tap prompt (was 250vh) */
+            min-height: 400vh; /* Extended WAY more for post-explosion stars (was 230vh) */
             z-index: 2;
         }
         
@@ -232,10 +232,10 @@
             position: absolute;
             left: 50%;
             transform: translateX(-50%);
-            width: 85%; /* Wider (was 80%) */
-            max-width: 1000px; /* Wider (was 900px) */
+            width: 90%; /* Wider (was 85%) */
+            max-width: 1100px; /* Wider (was 1000px) */
             text-align: center;
-            font-size: 1.9em; /* Slightly smaller (was 2em) */
+            font-size: 1.85em; /* Slightly smaller (was 1.9em) */
             line-height: 1.8;
             opacity: 0;
             color: white;
@@ -348,9 +348,9 @@
                 height: 180vh !important; /* Good breathing room */
             }
             
-            /* Genesis section - calculated for centered tap prompt */
+            /* Genesis section - MASSIVE extension for full star coverage */
             #genesis-section {
-                min-height: 180vh !important; /* Tight - calculated below */
+                min-height: 600vh !important; /* Way longer (was 180vh) - full mobile coverage */
             }
             
             /* Stargazing message - bigger, 2 lines, flows naturally */
@@ -385,8 +385,13 @@
             - Verse 1: 280 + 25 = 305vh
             - Verse 2: 280 + 75 = 355vh  
             - Tap prompt: 280 + 125 = 405vh
-            - End: 280 + 180 = 460vh (55vh after tap = centered!)
+            - Stars extend to: 280 + 600 = 880vh
             */
+            
+            /* Hide scroll hint on mobile - can be weird */
+            .scroll-hint {
+                display: none !important;
+            }
             
             /* Verse text smaller on mobile */
             .genesis-text {
@@ -2691,8 +2696,8 @@
                     if (!window.whiteFlashScrollDone) {
                         const windowHeight = window.innerHeight;
                         const isMobile = window.innerWidth <= 768;
-                        // Mobile: scroll to 180vh (in stargazing), Desktop: 155vh
-                        const targetScroll = isMobile ? windowHeight * 1.8 : windowHeight * 1.55;
+                        // Mobile: scroll to 220vh (fully into stargazing), Desktop: 155vh
+                        const targetScroll = isMobile ? windowHeight * 2.2 : windowHeight * 1.55;
                         
                         window.scrollTo({
                             top: targetScroll,
