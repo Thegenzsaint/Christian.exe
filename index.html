@@ -150,7 +150,10 @@
             text-align: center;
             max-height: 400px;
             overflow-y: auto;
+            overflow-x: hidden;
             -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+            overscroll-behavior: contain; /* Prevent parent scroll */
+            touch-action: pan-y; /* Allow vertical touch scrolling */
             padding: 20px;
             background: #f8f9fa;
             border-radius: 5px;
@@ -158,24 +161,28 @@
             line-height: 1.7;
         }
         
-        /* Mobile: make scrollbar more visible */
+        /* Mobile: make scrollbar more visible and ensure scrollability */
         @media (max-width: 768px) {
             .content {
-                max-height: 300px; /* Shorter on mobile */
+                max-height: 350px; /* Taller on mobile */
+                overflow-y: scroll; /* Force scrollbar */
+                -webkit-overflow-scrolling: touch;
             }
             
             .content::-webkit-scrollbar {
-                width: 8px; /* Visible scrollbar */
+                width: 10px; /* Wider, more visible */
+                -webkit-appearance: none;
             }
             
             .content::-webkit-scrollbar-track {
-                background: #e0e0e0;
-                border-radius: 4px;
+                background: #d0d0d0;
+                border-radius: 5px;
             }
             
             .content::-webkit-scrollbar-thumb {
                 background: #0070c0;
-                border-radius: 4px;
+                border-radius: 5px;
+                border: 2px solid #f8f9fa;
             }
         }
         
@@ -345,12 +352,12 @@
             
             /* Stargazing section - appropriate size */
             #stargazing-section {
-                height: 180vh !important; /* Good breathing room */
+                height: 180vh !important;
             }
             
-            /* Genesis section - MASSIVE extension for full star coverage */
+            /* Genesis section - calculated to center tap prompt perfectly */
             #genesis-section {
-                min-height: 600vh !important; /* Way longer (was 180vh) - full mobile coverage */
+                min-height: 170vh !important; /* Tight (was 600vh) - centers tap */
             }
             
             /* Stargazing message - bigger, 2 lines, flows naturally */
@@ -361,34 +368,35 @@
                 line-height: 1.2 !important;
             }
             
-            /* Verses positioned to fill space evenly */
+            /* Verses positioned evenly */
             #verse-1 {
-                top: 25vh !important; /* Start of genesis content */
+                top: 20vh !important;
             }
             
             #verse-2 {
-                top: 75vh !important; /* Even gap from v1 */
+                top: 65vh !important;
             }
             
-            /* Tap prompt - centered in remaining space */
+            /* Tap prompt - centered perfectly */
             #tap-prompt {
                 font-size: 1em !important;
-                top: 125vh !important; /* Even gap from v2, centered before end */
+                top: 110vh !important;
                 white-space: nowrap !important;
             }
             
             /* 
-            Mobile calculation:
+            Mobile pre-explosion:
             - White box: 0-100vh
             - Stargazing: 100-280vh (180vh)
-            - Genesis starts: 280vh
-            - Verse 1: 280 + 25 = 305vh
-            - Verse 2: 280 + 75 = 355vh  
-            - Tap prompt: 280 + 125 = 405vh
-            - Stars extend to: 280 + 600 = 880vh
+            - Genesis: 280-450vh (170vh)
+            - Verse 1: 300vh, Verse 2: 345vh, Tap: 390vh
+            - End: 450vh (60vh after tap = centered!)
+            
+            Stars only fill screen during pre-explosion scroll.
+            Post-explosion has separate extended scroll for stars.
             */
             
-            /* Hide scroll hint on mobile - can be weird */
+            /* Hide scroll hint on mobile */
             .scroll-hint {
                 display: none !important;
             }
@@ -2696,8 +2704,8 @@
                     if (!window.whiteFlashScrollDone) {
                         const windowHeight = window.innerHeight;
                         const isMobile = window.innerWidth <= 768;
-                        // Mobile: scroll to 220vh (fully into stargazing), Desktop: 155vh
-                        const targetScroll = isMobile ? windowHeight * 2.2 : windowHeight * 1.55;
+                        // Mobile: scroll to 240vh (deep in stargazing), Desktop: 155vh
+                        const targetScroll = isMobile ? windowHeight * 2.4 : windowHeight * 1.55;
                         
                         window.scrollTo({
                             top: targetScroll,
