@@ -42,18 +42,23 @@
             align-items: center;
             justify-content: center;
             z-index: 10;
+            padding-top: 40px; /* Breathing room at top */
+            padding-bottom: 40px; /* Balance at bottom */
         }
         
         .declaration-box {
             max-width: 800px;
             background: rgba(255, 255, 255, 0.98);
-            padding: 60px 40px;
+            padding: 30px 25px; /* TIGHTER: less space = more stars visible (was 60px 40px) */
             border-radius: 10px;
             box-shadow: 0 20px 60px rgba(0,0,0,0.3);
             text-align: center;
             backdrop-filter: blur(10px);
             margin: 0 auto; /* Removed 20vh top/bottom margin */
             color: #2c3e50;
+            /* Gradient fade at edges - MORE aggressive fade */
+            -webkit-mask-image: radial-gradient(ellipse 100% 100% at 50% 50%, black 60%, transparent 100%);
+            mask-image: radial-gradient(ellipse 100% 100% at 50% 50%, black 60%, transparent 100%);
         }
         
         .declaration-box h1 {
@@ -148,11 +153,40 @@
             text-align: center;
             max-height: 400px;
             overflow-y: auto;
+            overflow-x: hidden;
+            -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+            overscroll-behavior: contain; /* Prevent parent scroll */
+            touch-action: pan-y; /* Allow vertical touch scrolling */
             padding: 20px;
             background: #f8f9fa;
             border-radius: 5px;
             font-size: 0.95em;
             line-height: 1.7;
+        }
+        
+        /* Mobile: make scrollbar more visible and ensure scrollability */
+        @media (max-width: 768px) {
+            .content {
+                max-height: 350px; /* Taller on mobile */
+                overflow-y: scroll; /* Force scrollbar */
+                -webkit-overflow-scrolling: touch;
+            }
+            
+            .content::-webkit-scrollbar {
+                width: 10px; /* Wider, more visible */
+                -webkit-appearance: none;
+            }
+            
+            .content::-webkit-scrollbar-track {
+                background: #d0d0d0;
+                border-radius: 5px;
+            }
+            
+            .content::-webkit-scrollbar-thumb {
+                background: #0070c0;
+                border-radius: 5px;
+                border: 2px solid #f8f9fa;
+            }
         }
         
         footer {
@@ -188,7 +222,7 @@
         /* Section 3: Fade to Black + Genesis Text */
         #genesis-section {
             position: relative;
-            min-height: 220vh; /* Extended to give tap prompt breathing room */
+            min-height: 400vh; /* Extended WAY more for post-explosion stars (was 230vh) */
             z-index: 2;
         }
         
@@ -208,10 +242,10 @@
             position: absolute;
             left: 50%;
             transform: translateX(-50%);
-            width: 80%;
-            max-width: 900px;
+            width: 90%; /* Wider (was 85%) */
+            max-width: 1100px; /* Wider (was 1000px) */
             text-align: center;
-            font-size: 2em;
+            font-size: 1.85em; /* Slightly smaller (was 1.9em) */
             line-height: 1.8;
             opacity: 0;
             color: white;
@@ -236,6 +270,20 @@
             animation: faintFlash 3s ease-in-out infinite; /* Slow faint flash */
         }
         
+        #tap-prompt-bottom {
+            position: absolute;
+            bottom: 10px !important;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 1.2em;
+            color: white;
+            z-index: 7;
+            cursor: pointer;
+            user-select: none;
+            pointer-events: none;
+            animation: faintFlash 3s ease-in-out infinite 1.5s;
+        }
+        
         @keyframes faintFlash {
             0%, 100% { opacity: 0.3; }
             50% { opacity: 0.5; }
@@ -249,12 +297,13 @@
         /* Scroll hint at bottom of declaration */
         .scroll-hint {
             position: absolute;
-            bottom: 40px;
+            bottom: 20px; /* Lower (was 40px) */
             left: 50%;
             transform: translateX(-50%);
             font-size: 1em;
             color: rgba(255, 255, 255, 0.7);
             animation: bounce 2s ease-in-out infinite;
+            z-index: 15; /* Above white box (white box is z-index 10) */
         }
         
         @keyframes bounce {
@@ -265,7 +314,7 @@
         /* Stargazing messages */
         #stargazing-message {
             position: fixed;
-            top: 50%;
+            top: 40%; /* Higher (was 50%) */
             left: 50%;
             transform: translate(-50%, -50%);
             font-size: 2.5em;
@@ -286,28 +335,113 @@
         @media (max-width: 768px) {
             .declaration-box {
                 max-width: 85%; /* Narrower on mobile */
-                padding: 40px 25px; /* Less padding */
+                padding: 20px 15px; /* Even less padding - show more stars! */
                 margin: 0 20px; /* Side margins to show stars */
             }
             
             .declaration-box h1 {
-                font-size: 2.2em; /* Smaller title */
+                font-size: 1.8em; /* Smaller title (was 2.2em) */
+                line-height: 1.2;
+                word-wrap: break-word;
+                overflow-wrap: break-word;
             }
             
             .declaration-box .subtitle {
-                font-size: 1em;
+                font-size: 0.9em;
                 margin-bottom: 25px;
             }
             
             .description {
-                font-size: 0.95em;
+                font-size: 0.9em;
                 line-height: 1.6;
                 margin-bottom: 25px;
             }
             
             .download-links a {
-                font-size: 0.9em;
-                padding: 12px 20px;
+                font-size: 0.85em;
+                padding: 10px 18px;
+            }
+            
+            /* Footer - split into two lines with smaller text */
+            footer p:last-child {
+                font-size: 0.7em !important; /* Smaller */
+                line-height: 1.6;
+            }
+            
+            /* Stargazing section - appropriate size */
+            #stargazing-section {
+                height: 180vh !important;
+            }
+            
+            /* Genesis section - calculated to center tap prompt perfectly */
+            #genesis-section {
+                min-height: 160vh !important; /* Extra room below tap prompt for centering (was 110vh) */
+            }
+            
+            /* Stargazing message - bigger, 2 lines, flows naturally */
+            #stargazing-message {
+                position: absolute !important; /* Glued to spot, doesn't follow camera! */
+                font-size: 1.171875em !important;
+                width: 320px !important;
+                max-width: 320px !important;
+                line-height: 1.2 !important;
+                top: 120vh !important; /* Higher - closer to white box (was 150vh) */
+            }
+            
+            /* Verses positioned evenly */
+            #verse-1 {
+                top: 20vh !important;
+            }
+            
+            #verse-2 {
+                top: 65vh !important;
+            }
+            
+            /* Tap prompt - centered perfectly */
+            #tap-prompt {
+                font-size: 1em !important;
+                top: 110vh !important;
+                white-space: nowrap !important;
+            }
+            
+            /* 
+            Mobile pre-explosion:
+            - White box: 0-100vh
+            - Stargazing: 100-280vh (180vh)
+            - Genesis: 280-450vh (170vh)
+            - Verse 1: 300vh, Verse 2: 345vh, Tap: 390vh
+            - End: 450vh (60vh after tap = centered!)
+            
+            Stars only fill screen during pre-explosion scroll.
+            Post-explosion has separate extended scroll for stars.
+            */
+            
+            /* Show scroll hint on mobile but LOWER */
+            .scroll-hint {
+                display: block !important;
+                bottom: -60px !important; /* Pull it WAY down below white box */
+                font-size: 0.85em !important; /* Smaller to fit on one line */
+                white-space: nowrap !important; /* NO WRAPPING! */
+            }
+            
+            /* Verse text smaller on mobile */
+            .genesis-text {
+                font-size: 1.4em;
+                width: 90%;
+                line-height: 1.6;
+            }
+            
+            /* Tap prompt smaller */
+            #tap-prompt {
+                font-size: 1.2em;
+            }
+            
+            /* Post-explosion stargazing - same formatting as pre-explosion */
+            #post-explosion-stargazing {
+                font-size: 1.171875em !important;
+                width: 320px !important;
+                max-width: 320px !important;
+                line-height: 1.2 !important;
             }
         }
     </style>
@@ -351,7 +485,8 @@
                     </div>
                     
                     <p style="margin-top: 20px; font-size: 0.85em;">
-                        © 2026 Christian.exe | For humanity and AHI | May it serve the kingdom
+                        For humanity and AHI | May it serve the Kingdom<br>
+                        © 2026 Christian.exe
                     </p>
                 </footer>
             </div>
@@ -377,6 +512,8 @@
             </div>
             
             <div id="tap-prompt" style="top: 170vh;">(Click or tap anywhere)</div>
+            
+            <div id="tap-prompt-bottom">(Click or tap anywhere)</div>
             
         </section>
     </div>
@@ -439,10 +576,18 @@
             fadeOverlay.style.opacity = 1;
             fadeOverlay.style.transition = 'none'; // No transition during scroll
             
-            // IMMEDIATELY VANISH tap prompt - preserve the magic!
+            // IMMEDIATELY VANISH BOTH tap prompts - preserve the magic!
             tapPrompt.style.opacity = 0;
-            tapPrompt.style.display = 'none'; // Completely gone
+            tapPrompt.style.display = 'none';
             tapPrompt.style.pointerEvents = 'none';
+            
+            const tapPromptBottom = document.getElementById('tap-prompt-bottom');
+            if (tapPromptBottom) {
+                tapPromptBottom.style.opacity = 0;
+                tapPromptBottom.style.display = 'none';
+                tapPromptBottom.style.pointerEvents = 'none';
+            }
+            
             document.getElementById('verse-1').style.opacity = 0;
             document.getElementById('verse-2').style.opacity = 0;
             
@@ -482,12 +627,18 @@
             
             // Don't hide stargazing message - let it stay
             
-            // Scroll to where verse 1 is positioned AND center it in viewport
-            // Genesis starts at 300vh, verse 1 is at top: 50vh within genesis
-            // Absolute position: 300vh + 50vh = 350vh
-            // We want verse 1 centered, so scroll to (verse position - half viewport)
-            const verse1Position = window.innerHeight * 3.5; // 350vh
-            const explosionScrollTarget = verse1Position - (window.innerHeight * 0.5); // Center it
+            // Scroll to TAP PROMPT and center it in viewport
+            // MOBILE: Declaration 100vh + Stargazing 180vh + TapPrompt 110vh = 390vh
+            // DESKTOP: Declaration 100vh + Stargazing 200vh + TapPrompt 110vh = 410vh
+            const isMobile = window.innerWidth <= 768;
+            const declarationHeight = window.innerHeight; // 100vh
+            const stargazingHeight = isMobile ? window.innerHeight * 1.8 : window.innerHeight * 2.0;
+            const tapPromptOffset = window.innerHeight * 1.1; // 110vh within genesis
+            
+            const tapPromptPosition = declarationHeight + stargazingHeight + tapPromptOffset;
+            const explosionScrollTarget = tapPromptPosition - (window.innerHeight * 0.5); // Center tap prompt
+            
+            console.log(`📜 Scrolling to ${explosionScrollTarget}px to center tap prompt at ${tapPromptPosition}px`);
             
             window.scrollTo({
                 top: explosionScrollTarget,
@@ -517,31 +668,7 @@
             }, 1000); // Wait 1 second for scroll
         }
         
-        // Click/tap handler - ANYWHERE on screen when tap prompt is visible
-        document.addEventListener('click', (e) => {
-            console.log("CLICK DETECTED", {
-                tapPromptOpacity: tapPrompt.style.opacity,
-                tapPromptPointerEvents: tapPrompt.style.pointerEvents,
-                explosionActive: explosionActive,
-                explosionCompleted: explosionCompleted
-            });
-            
-            // Trigger if tap prompt is visible OR if we're in genesis section and not completed
-            if ((tapPrompt.style.opacity > 0 || parseFloat(tapPrompt.style.opacity) > 0) && !explosionCompleted) {
-                console.log("CONDITIONS MET - TRIGGERING EXPLOSION");
-                triggerExplosion();
-            } else {
-                console.log("CONDITIONS NOT MET - IGNORING CLICK");
-            }
-        });
-        
-        document.addEventListener('touchstart', (e) => {
-            console.log("TOUCH DETECTED");
-            if ((tapPrompt.style.opacity > 0 || parseFloat(tapPrompt.style.opacity) > 0) && !explosionCompleted) {
-                e.preventDefault();
-                triggerExplosion();
-            }
-        });
+        // Click/tap handler - ONLY works in genesis section (170vh-280vh)
         
         // ===================================================================
         // STARFIELD SYSTEM (reusing your existing code with enhancements)
@@ -551,7 +678,15 @@
         const ctx = canvas.getContext('2d');
         
         canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight; // Back to single viewport
+        canvas.height = window.innerHeight; // Viewport height - no squish!
+        
+        // MOBILE-FIRST: Virtual star field (what we scroll through)
+        const isMobile = window.innerWidth <= 768;
+        const virtualStarFieldHeight = window.innerHeight * (isMobile ? 6 : 10);
+        
+        console.log(`📱 Mobile: ${isMobile}`);
+        console.log(`📐 Canvas: ${canvas.width}x${canvas.height}px`);
+        console.log(`🌌 Virtual star field: ${virtualStarFieldHeight}px (${isMobile ? 6 : 10}00vh)`);
         
         // ===================================================================
         // REAL STAR DATA - Actual celestial coordinates
@@ -600,6 +735,14 @@
             // Leo
             ["Denebola", 11.82, 14.57, 2.14, "white"],
             
+            // Scorpius (the Scorpion) - small constellation near Beehive
+            ["Antares", 16.49, -26.43, 1.09, "red"], // Heart of scorpion
+            ["Dschubba", 16.00, -22.62, 2.32, "blue"], // Head
+            ["Graffias", 16.09, -19.80, 2.56, "blue"], // Claws
+            ["Sargas", 17.62, -43.00, 1.87, "orange"], // Body curve
+            ["Shaula", 17.56, -37.10, 1.63, "blue"], // Tail
+            ["Lesath", 17.51, -37.30, 2.70, "blue"], // Tail tip
+            
             // Pleiades cluster
             ["Alcyone", 3.79, 24.11, 2.86, "blue"],
             ["Atlas", 3.83, 24.05, 3.62, "blue"],
@@ -609,11 +752,11 @@
         
         // Color map for stars
         const starColors = {
-            "blue": "rgba(155, 176, 255, ",
+            "blue": "rgba(100, 150, 255, ",      // VIVID blue (was 140, 180, 255)
             "white": "rgba(255, 255, 255, ",
-            "yellow": "rgba(255, 244, 234, ",
-            "orange": "rgba(255, 209, 178, ",
-            "red": "rgba(255, 204, 111, "
+            "yellow": "rgba(255, 255, 180, ",     // VIVID yellow (was 255, 250, 220)
+            "orange": "rgba(255, 140, 60, ",      // VIVID orange (was 255, 180, 120)
+            "red": "rgba(255, 100, 40, "          // VIVID red (was 255, 160, 80)
         };
         
         // Star system
@@ -668,28 +811,146 @@
             });
         }
         const galaxies = [];
+        const backgroundStars = []; // Super faint dense layer (furthest back!)
+        
+        // Constellation connections (faint dashed lines)
+        const constellationLines = [
+            // Orion - classic hourglass shape
+            ["Betelgeuse", "Bellatrix"],
+            ["Bellatrix", "Alnilam"],
+            ["Alnilam", "Alnitak"],
+            ["Alnitak", "Saiph"],
+            ["Saiph", "Rigel"],
+            ["Rigel", "Betelgeuse"],
+            ["Alnilam", "Rigel"],
+            ["Mintaka", "Alnilam"],
+            
+            // Big Dipper - the dipper shape
+            ["Dubhe", "Merak"],
+            ["Merak", "Phecda"],
+            ["Phecda", "Megrez"],
+            ["Megrez", "Alioth"],
+            ["Alioth", "Mizar"],
+            ["Mizar", "Alkaid"],
+            ["Megrez", "Dubhe"],
+            
+            // Cassiopeia - W shape
+            ["Schedar", "Caph"],
+            ["Caph", "Ruchbah"],
+            
+            // Leo - triangle + tail
+            ["Regulus", "Denebola"],
+            
+            // Scorpius - curved tail shape like reference image
+            ["Graffias", "Dschubba"], // Claws to head
+            ["Dschubba", "Antares"], // Head to heart
+            ["Antares", "Sargas"], // Heart to body curve
+            ["Sargas", "Shaula"], // Body to tail
+            ["Shaula", "Lesath"] // Tail curve
+        ];
         let uap = null;
         let uap2 = null; // Second UAP for dual encounters
         let formation = []; // Formation of orbs (triangle or V-shape)
         let shootingStars = [];
         
-        // Convert real star data to canvas coordinates
+        // Convert real star data to canvas coordinates (using VIRTUAL field for Y)
         brightStarsData.forEach(([name, ra, dec, magnitude, colorName]) => {
-            // RA: 0-24 hours maps to full canvas width
-            const x = (ra / 24) * canvas.width;
+            // Check if constellation star (Orion, Big Dipper, Cassiopeia, Leo, Scorpius)
+            const constellationStars = [
+                "Bellatrix", "Alnilam", "Alnitak", "Saiph", "Mintaka", "Rigel", "Betelgeuse", // Orion
+                "Dubhe", "Merak", "Phecda", "Megrez", "Alioth", "Mizar", "Alkaid", // Big Dipper
+                "Schedar", "Caph", "Ruchbah", // Cassiopeia
+                "Regulus", "Denebola", // Leo
+                "Antares", "Dschubba", "Graffias", "Sargas", "Shaula", "Lesath" // Scorpius
+            ];
+            const isConstellation = constellationStars.includes(name);
             
-            // Dec: focus on -40 to +90 (northern hemisphere view)
-            const decMin = -40;
-            const decMax = 90;
-            const decNormalized = (dec - decMin) / (decMax - decMin);
-            const y = canvas.height * (1 - decNormalized);
+            // RA: 0-24 hours maps to canvas width
+            let x = (ra / 24) * canvas.width;
             
-            // Magnitude to size/opacity (brighter = bigger)
+            // MOBILE: Shift ALL constellations MORE LEFT (30% of X position = far left column)
+            if (isConstellation && isMobile) {
+                x = x * 0.3; // Far left for mobile viewing!
+            }
+            // Desktop: Only shift Scorpius left
+            else if (["Antares", "Dschubba", "Graffias", "Sargas", "Shaula", "Lesath"].includes(name) && !isMobile) {
+                x = x * 0.4; // Shift to 40% (left side of screen)
+            }
+            
+            // CONSTELLATION STARS: COMPACT and PROPER proportions!
+            // ALL 5 constellations - MOBILE gets them compressed into 0-1000px!
+            let y;
+            let sizeScale = 1.0; // Default size
+            
+            if (isConstellation) {
+                // MOBILE: Compress vertically and make MUCH smaller so ALL are visible
+                const mobileCompression = isMobile ? 0.6 : 1.0; // 60% of desktop height on mobile
+                const mobileSizeReduction = isMobile ? 0.5 : 1.0; // 50% of desktop size on mobile (smaller!)
+                
+                // Orion: 100-400px desktop, 60-240px mobile (180px tall mobile)
+                if (["Betelgeuse", "Bellatrix", "Alnilam", "Alnitak", "Saiph", "Mintaka", "Rigel"].includes(name)) {
+                    const decMin = -10; const decMax = 8;
+                    const decNormalized = (dec - decMin) / (decMax - decMin);
+                    const baseY = 100;
+                    const rangeHeight = 300;
+                    y = baseY + (rangeHeight * (1 - decNormalized) * mobileCompression);
+                    sizeScale = 0.6 * mobileSizeReduction;
+                }
+                // Big Dipper: 450-750px desktop, 270-450px mobile (180px tall mobile)
+                else if (["Dubhe", "Merak", "Phecda", "Megrez", "Alioth", "Mizar", "Alkaid"].includes(name)) {
+                    const decMin = 49; const decMax = 62;
+                    const decNormalized = (dec - decMin) / (decMax - decMin);
+                    const baseY = isMobile ? 270 : 450;
+                    const rangeHeight = 300;
+                    y = baseY + (rangeHeight * (1 - decNormalized) * mobileCompression);
+                    sizeScale = 0.6 * mobileSizeReduction;
+                }
+                // Cassiopeia: 800-1050px desktop, 460-610px mobile (150px tall mobile)
+                else if (["Schedar", "Caph", "Ruchbah"].includes(name)) {
+                    const decMin = 56; const decMax = 61;
+                    const decNormalized = (dec - decMin) / (decMax - decMin);
+                    const baseY = isMobile ? 460 : 800;
+                    const rangeHeight = 250;
+                    y = baseY + (rangeHeight * (1 - decNormalized) * mobileCompression);
+                    sizeScale = 0.5 * mobileSizeReduction;
+                }
+                // Leo: 1100-1300px desktop, 620-740px mobile (120px tall mobile)
+                else if (["Regulus", "Denebola"].includes(name)) {
+                    const decMin = 11; const decMax = 15;
+                    const decNormalized = (dec - decMin) / (decMax - decMin);
+                    const baseY = isMobile ? 620 : 1100;
+                    const rangeHeight = 200;
+                    y = baseY + (rangeHeight * (1 - decNormalized) * mobileCompression);
+                    sizeScale = 0.5 * mobileSizeReduction;
+                }
+                // Scorpius: 1350-1600px desktop, 750-900px mobile (150px tall mobile)
+                else if (["Antares", "Dschubba", "Graffias", "Sargas", "Shaula", "Lesath"].includes(name)) {
+                    const decMin = -44; const decMax = -22;
+                    const decNormalized = (dec - decMin) / (decMax - decMin);
+                    const baseY = isMobile ? 750 : 1350;
+                    const rangeHeight = 250;
+                    y = baseY + (rangeHeight * (1 - decNormalized) * mobileCompression);
+                    sizeScale = 0.5 * mobileSizeReduction;
+                }
+            } else {
+                // NON-CONSTELLATION: Spread across full virtual field
+                const decMin = -40;
+                const decMax = 90;
+                const decNormalized = (dec - decMin) / (decMax - decMin);
+                y = virtualStarFieldHeight * (1 - decNormalized);
+            }
+            
+            // Magnitude to size/opacity (brighter = bigger) - ACCURATE ASTRONOMY
             const minMag = -1.5;
             const maxMag = 4.5;
             const brightness = 1 - ((magnitude - minMag) / (maxMag - minMag));
-            const size = 1.2 + (brightness * 3); // Increased from 0.8 + 2.5
-            const opacity = 0.6 + (brightness * 0.4); // Increased from 0.4 + 0.6 (now 0.6-1.0)
+            
+            // Constellation stars get BOOSTED size and brightness - 30% LOWER than before
+            const sizeMultiplier = isConstellation ? (1.5 * sizeScale) : 1.0;
+            const opacityBoost = isConstellation ? 0.14 : 0; // 30% lower (was 0.2)
+            
+            const size = (1.5 + (brightness * 4.5)) * sizeMultiplier;
+            const opacity = Math.min(1.0, (0.75 + (brightness * 0.25)) + opacityBoost);
             
             stars.push({
                 name: name,
@@ -697,21 +958,26 @@
                 y: y,
                 size: size,
                 opacity: opacity,
-                color: starColors[colorName] || starColors["white"],
-                twinkleSpeed: 0.02 + Math.random() * 0.03,
+                color: starColors[colorName] || starColors["white"], // Accurate color from data
+                twinkleSpeed: isConstellation ? (0.014 + Math.random() * 0.021) : (0.02 + Math.random() * 0.03), // 30% slower for constellations
                 twinklePhase: Math.random() * Math.PI * 2,
-                isReal: true // Mark as real star
+                isReal: true, // Mark as real star
+                isConstellation: isConstellation, // Mark constellation stars
+                glow: isConstellation ? (isMobile ? 3 : 8) : (brightness > 0.7 ? 5 : 3) // Less glow on mobile!
             });
         });
         
-        // Add fainter filler stars to complete the sky
-        for (let i = 0; i < 400; i++) { // Increased from 150
+        // Add fainter filler stars to complete the sky - LOTS MORE for mobile
+        // Original had 400 stars for 100vh canvas
+        // Virtual field is 6x taller on mobile, so we need 6x more stars = 2400!
+        const fillerStarCount = isMobile ? 2400 : 1600; // Mobile needs way more!
+        for (let i = 0; i < fillerStarCount; i++) {
             stars.push({
                 name: `filler-${i}`,
                 x: Math.random() * canvas.width,
-                y: Math.random() * canvas.height,
-                size: Math.random() * 1.0 + 0.4, // Bigger (0.4-1.4, was 0.2-1.0)
-                opacity: Math.random() * 0.5 + 0.3, // Brighter (0.3-0.8, was 0.15-0.55)
+                y: Math.random() * virtualStarFieldHeight, // Spread across full field
+                size: Math.random() * 1.2 + 0.5, // BRIGHTER: 0.5-1.7 (was 0.4-1.4)
+                opacity: Math.random() * 0.5 + 0.4, // BRIGHTER: 0.4-0.9 (was 0.3-0.8)
                 color: "rgba(255, 255, 255, ",
                 twinkleSpeed: Math.random() * 0.02 + 0.01,
                 twinklePhase: Math.random() * Math.PI * 2,
@@ -720,8 +986,19 @@
         }
         
         console.log(`⭐ Loaded ${brightStarsData.length} real stars from celestial catalog`);
-        console.log(`⭐ Constellations: Orion, Big Dipper, Cassiopeia, Leo, Pleiades`);
+        console.log(`⭐ Constellations: Orion, Big Dipper, Cassiopeia, Leo, Scorpius`);
         console.log(`⭐ Total stars: ${stars.length}`);
+        
+        // DIAGNOSTIC: Log constellation star positions
+        console.log("🌟 CONSTELLATION STAR POSITIONS:");
+        ["Betelgeuse", "Rigel", "Bellatrix", "Alnilam", "Dubhe", "Alkaid"].forEach(starName => {
+            const star = stars.find(s => s.name === starName);
+            if (star) {
+                console.log(`  ${starName}: x=${Math.round(star.x)}, y=${Math.round(star.y)}, virtualHeight=${virtualStarFieldHeight}`);
+            } else {
+                console.log(`  ${starName}: NOT FOUND!`);
+            }
+        });
         
         // ===================================================================
         // REAL GALAXIES AND STAR CLUSTERS
@@ -737,12 +1014,12 @@
         function createRealCluster(name, ra, dec, type, apparentSize, galaxyType, numStars) {
             const cluster = [];
             
-            // Convert RA/Dec to canvas position (same as stars)
+            // Convert RA/Dec to canvas position (using VIRTUAL field for Y)
             const centerX = (ra / 24) * canvas.width;
             const decMin = -40;
             const decMax = 90;
             const decNormalized = (dec - decMin) / (decMax - decMin);
-            const centerY = canvas.height * (1 - decNormalized);
+            const centerY = virtualStarFieldHeight * (1 - decNormalized); // Virtual field!
             
             // Apparent size in arc-minutes to pixels
             const clusterRadius = (apparentSize / 60) * 50; // Scale factor
@@ -802,10 +1079,95 @@
             return cluster;
         }
         
-        // Create real deep sky objects
-        galaxies.push(createRealCluster("Andromeda Galaxy", 0.71, 41.27, "galaxy", 180, "spiral", 80));
-        galaxies.push(createRealCluster("Pleiades", 3.79, 24.12, "cluster", 110, null, 60));
-        galaxies.push(createRealCluster("Beehive Cluster", 8.67, 19.98, "cluster", 95, null, 50));
+        // Helper function to create galaxy stars - MUST BE BEFORE USAGE
+        function createGalaxyStars(count, centerX, centerY, radius, type) {
+            const clusterStars = [];
+            for (let i = 0; i < count; i++) {
+                const angle = Math.random() * Math.PI * 2;
+                let radiusX, radiusY;
+                
+                if (type === 'spiral') {
+                    const armOffset = Math.floor(Math.random() * 3);
+                    const spiralAngle = angle + (armOffset * Math.PI * 2 / 3);
+                    const r = Math.pow(Math.random(), 0.6) * radius;
+                    radiusX = r * Math.cos(spiralAngle) * 1.2;
+                    radiusY = r * Math.sin(spiralAngle) * 0.4;
+                } else {
+                    const r = Math.pow(Math.random(), 0.7) * radius;
+                    radiusX = r;
+                    radiusY = r;
+                }
+                
+                // MOBILE: Make galaxy stars BIGGER and BRIGHTER!
+                const isMobile = window.innerWidth <= 768;
+                
+                clusterStars.push({
+                    centerX, centerY, angle, radiusX, radiusY,
+                    orbitSpeed: 0,
+                    size: isMobile ? (Math.random() * 2.5 + 1.2) : (Math.random() * 1.5 + 0.6), // BIGGER on mobile
+                    opacity: isMobile ? (Math.random() * 0.4 + 0.7) : (Math.random() * 0.7 + 0.5), // BRIGHTER on mobile (0.7-1.1)
+                    wobblePhase: Math.random() * Math.PI * 2,
+                    wobbleAmount: 0.625 + Math.random() * 1.25
+                });
+            }
+            return clusterStars;
+        }
+        
+        // Create real deep sky objects - POSITIONED FOR MOBILE STARGAZING SECTION
+        // Mobile stargazing: 100vh-280vh (180vh section)
+        // Position galaxies at specific vh values for visibility
+        
+        // MOBILE GALAXIES - FIXED IN BACKGROUND (upper-left area, spaced vertically)
+        console.log("🌌 Creating BACKGROUND galaxies (upper-left, spaced)...");
+        
+        // Scale down galaxies on mobile (50% size) so they look like stars not blobs
+        const galaxyScale = isMobile ? 0.5 : 1.0;
+        
+        // Galaxy 1: Top-left - MASSIVE SPIRAL (moved more left)
+        galaxies.push({
+            centerX: canvas.width * 0.15, // LEFT SIDE
+            centerY: canvas.height * 0.25,
+            type: 'galaxy',
+            galaxyType: 'spiral',
+            name: 'Andromeda Galaxy',
+            stars: createGalaxyStars(Math.floor(350 * galaxyScale), canvas.width * 0.15, canvas.height * 0.25, 280 * galaxyScale, 'spiral')
+        });
+        
+        // Galaxy 2: Mid-left - BIGGER CLUSTER (moved more left)
+        galaxies.push({
+            centerX: canvas.width * 0.18, // LEFT SIDE
+            centerY: canvas.height * 0.52,
+            type: 'cluster',
+            name: 'Pleiades',
+            stars: createGalaxyStars(Math.floor(300 * galaxyScale), canvas.width * 0.18, canvas.height * 0.52, 260 * galaxyScale, 'cluster')
+        });
+        
+        // Galaxy 3: Lower-left - BIGGER CLUSTER (moved more left)
+        galaxies.push({
+            centerX: canvas.width * 0.12, // LEFT SIDE
+            centerY: canvas.height * 0.82,
+            type: 'cluster',
+            name: 'Beehive Cluster',
+            stars: createGalaxyStars(Math.floor(270 * galaxyScale), canvas.width * 0.12, canvas.height * 0.82, 240 * galaxyScale, 'cluster')
+        });
+        
+        console.log(`🌌 Created ${galaxies.length} BACKGROUND galaxies`);
+        
+        // ===================================================================
+        // SUPER FAINT BACKGROUND STARS - Dense layer behind everything
+        // ===================================================================
+        const bgStarCount = isMobile ? 3000 : 2000; // LOTS of faint stars
+        for (let i = 0; i < bgStarCount; i++) {
+            const baseOpacity = Math.random() * 0.12 + 0.04;
+            const brightnessMult = 1.5 + (Math.random() * 0.3); // 1.5-1.8 = normal brightness
+            backgroundStars.push({
+                x: Math.random() * canvas.width,
+                y: Math.random() * canvas.height, // Viewport only (not virtual field)
+                size: Math.random() * 0.6 + 0.2, // Tiny: 0.2-0.8
+                opacity: Math.min(0.3, baseOpacity * brightnessMult), // Cap at 0.3
+            });
+        }
+        console.log(`✨ Created ${bgStarCount} super faint background stars`);
         
         console.log(`🌌 Total deep sky objects: ${galaxies.length}`);
         
@@ -815,7 +1177,7 @@
         for (let i = 0; i < 10; i++) {
             foregroundStars.push({
                 x: Math.random() * canvas.width,
-                y: Math.random() * canvas.height,
+                y: Math.random() * virtualStarFieldHeight, // Virtual field
                 size: 0.8 + Math.random() * 1.2, // 0.8-2.0px
                 opacity: 0.3 + Math.random() * 0.3, // 0.3-0.6 (dimmer, subtle)
                 color: 'rgba(255, 255, 255,' // No twinkle, just static presence
@@ -1233,7 +1595,10 @@
             const scrollY = window.scrollY;
             const windowHeight = window.innerHeight;
             const declarationEnd = windowHeight;
-            const stargazingEnd = declarationEnd + windowHeight * 2;
+            // Match the mobile/desktop heights we set in CSS
+            const isMobile = window.innerWidth <= 768;
+            const stargazingHeight = isMobile ? 2.2 : 2.0; // Mobile 220vh, desktop 200vh
+            const stargazingEnd = declarationEnd + windowHeight * stargazingHeight;
             
             const nowInStargazing = (scrollY > declarationEnd && scrollY < stargazingEnd);
             
@@ -1255,7 +1620,7 @@
                 currentOpacity = 0; // Start at 0
                 entryDelay = 0.3; // Wait 0.3 seconds before fading in
                 stargazingMessage.textContent = messages[0];
-                stargazingMessage.style.top = '50%';
+                stargazingMessage.style.top = '40%'; // Higher (was 50%)
                 stargazingMessage.style.opacity = 0; // Explicitly start hidden
             }
             
@@ -1268,7 +1633,7 @@
                 // Only hide if explosion hasn't started
                 if (!window.explosionEverStarted) {
                     stargazingMessage.style.opacity = 0;
-                    stargazingMessage.style.top = '50%';
+                    stargazingMessage.style.top = '40%'; // Higher (was 50%)
                 }
                 messageTimer = 0;
                 isTransitioning = false;
@@ -1294,7 +1659,7 @@
             
             // Move message up as scrolling
             const verticalOffset = stargazingProgress * 30;
-            stargazingMessage.style.top = `${50 - verticalOffset}%`;
+            stargazingMessage.style.top = `${40 - verticalOffset}%`; // Start from 40% (was 50%)
             
             // If transitioning, handle that
             if (isTransitioning) {
@@ -1373,11 +1738,17 @@
             
             // Calculate which section we're in
             const declarationEnd = windowHeight;
-            const stargazingEnd = declarationEnd + windowHeight * 2;
+            // Mobile has 220vh stargazing, desktop has 200vh
+            const isMobile = window.innerWidth <= 768;
+            const stargazingHeight = isMobile ? 2.2 : 2.0; // Mobile 220vh, desktop 200vh
+            const stargazingEnd = declarationEnd + windowHeight * stargazingHeight;
             const genesisStart = stargazingEnd;
             
-            // Start black fade BEFORE genesis so it's 100% when verse 1 is centered
-            const blackFadeStart = genesisStart - (windowHeight * 0.15); // 285vh - starts 15vh earlier
+            // Black fade gradient
+            // Mobile: gradient in LAST 30vh of stargazing (stars → gradient → verse 1)
+            // Desktop: starts 15vh before genesis
+            const fadeEarlier = isMobile ? 0.3 : 0.15; // Mobile 30vh gradient, desktop 15vh
+            const blackFadeStart = genesisStart - (windowHeight * fadeEarlier);
             
             // Update stargazing messages (ONLY if explosion hasn't happened)
             if (!window.explosionEverStarted) {
@@ -1470,73 +1841,185 @@
             // Clear canvas - use BLACK throughout explosion, otherwise darker space blue
             if (explosionActive && explosionTimer < 8) {
                 ctx.fillStyle = 'black'; // Black background throughout explosion
+                ctx.fillRect(0, 0, canvas.width, canvas.height); // Fill ENTIRE canvas black
             } else {
                 ctx.fillStyle = '#0a1628'; // Darker space blue
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
             }
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
             
             // Render stars (ONLY if explosion isn't active OR we're in the fade phase)
             if (!explosionActive || explosionTimer >= 8) {
             
-            // Render stars with PARALLAX
             const scrollY = window.scrollY;
             const parallaxFactor = 0.15; // Positive = stars move UP when you scroll DOWN
             
+            // ===================================================================
+            // LAYER 0: SUPER FAINT BACKGROUND STARS (FURTHEST BACK!)
+            // ===================================================================
+            backgroundStars.forEach(star => {
+                // Match galaxy parallax but slightly less (0.06 vs galaxy 0.08)
+                const parallaxOffset = scrollY * 0.06;
+                
+                ctx.fillStyle = `rgba(200, 200, 220, ${star.opacity})`;
+                ctx.beginPath();
+                ctx.arc(star.x, star.y - parallaxOffset, star.size, 0, Math.PI * 2);
+                ctx.fill();
+            });
+            
+            // ===================================================================
+            // LAYER 1: GALAXIES (BACKGROUND - FARTHEST BACK!)
+            // ===================================================================
+            galaxies.forEach(galaxy => {
+                const galaxyStars = galaxy.stars || galaxy;
+                
+                if (!galaxyStars || galaxyStars.length === 0) return;
+                
+                galaxyStars.forEach(star => {
+                    star.angle += star.orbitSpeed;
+                    
+                    const wobble = Math.sin(time + star.wobblePhase) * star.wobbleAmount;
+                    const x = star.centerX + Math.cos(star.angle) * star.radiusX + wobble;
+                    const y = star.centerY + Math.sin(star.angle) * star.radiusY + wobble * 0.5;
+                    
+                    // BACKGROUND - slow but visible parallax (0.08)
+                    const parallaxOffset = scrollY * 0.08; // Was 0.02, now more visible
+                    
+                    const dx = x - star.centerX;
+                    const dy = y - star.centerY;
+                    const distanceFromCenter = Math.sqrt(dx * dx + dy * dy);
+                    const maxRadius = Math.max(Math.abs(star.radiusX), Math.abs(star.radiusY));
+                    const edgeFade = 1 - (distanceFromCenter / (maxRadius * 1.2));
+                    const finalOpacity = star.opacity * Math.max(0.2, edgeFade);
+                    
+                    ctx.fillStyle = `rgba(220, 220, 240, ${finalOpacity * 0.7})`; // BRIGHTER (was 0.5), slightly blue-tinted
+                    ctx.beginPath();
+                    ctx.arc(x, y - parallaxOffset, star.size * 0.85, 0, Math.PI * 2); // Slightly bigger (was 0.8)
+                    ctx.fill();
+                });
+            });
+            
+            // ===================================================================
+            // LAYER 2: MID-DEPTH STARS (named + filler - MIDDLE LAYER)
+            // ===================================================================
             stars.forEach(star => {
-                star.twinklePhase += star.twinkleSpeed * 0.594; // 8% faster (was 0.55)
+                star.twinklePhase += star.twinkleSpeed * 1.3; // +10% more (was 1.2)
                 // Random twinkle pattern - atmospheric shimmer with RANDOM INTENSITY per star
                 // Each star has its own rhythm + variation from "atmospheric turbulence"
                 // Random intensity factor unique to this star (stored on first access)
                 if (!star.twinkleIntensity) {
-                    star.twinkleIntensity = 0.5 + Math.random() * 0.5; // 0.5 to 1.0 (some stars twinkle more)
+                    star.twinkleIntensity = 0.5 + Math.random() * 0.6; // STRONGER: 0.5-1.1 (was 0.5-1.0)
                 }
                 
-                const mainTwinkle = Math.sin(star.twinklePhase) * 0.3 * star.twinkleIntensity; // Scaled by intensity
-                const atmosphericShimmer = Math.sin(star.twinklePhase * 1.3 + star.x * 0.1) * 0.15 * star.twinkleIntensity; // Scaled by intensity
-                const twinkle = 0.7 + mainTwinkle + atmosphericShimmer; // Range varies per star!
+                const mainTwinkle = Math.sin(star.twinklePhase) * 0.4 * star.twinkleIntensity; // +10% stronger (was 0.35)
+                const atmosphericShimmer = Math.sin(star.twinklePhase * 1.3 + star.x * 0.1) * 0.28 * star.twinkleIntensity; // +10% stronger (was 0.25)
+                const twinkle = 0.7 + mainTwinkle + atmosphericShimmer;
                 
                 // Parallax: brighter/bigger stars move slower (closer), dimmer stars move faster (farther)
                 const depth = 1 - (star.opacity * 0.5); // 0 (close) to 0.5 (far)
                 const parallaxOffset = -scrollY * parallaxFactor * depth; // NEGATIVE scrollY so they move opposite direction
                 
                 // Use star's actual color if it has one
-                const finalOpacity = star.opacity * twinkle;
-                ctx.fillStyle = star.color ? `${star.color}${finalOpacity})` : `rgba(255, 255, 255, ${finalOpacity})`;
+                const finalOpacity = star.opacity * twinkle * 1.5; // 50% BRIGHTER!
                 
-                ctx.beginPath();
-                ctx.arc(star.x, star.y + parallaxOffset, star.size, 0, Math.PI * 2);
-                ctx.fill();
+                // MOBILE: Draw POINTY stars instead of circles (sharper, crisper)
+                if (isMobile) {
+                    // 4-point star shape (diamond/cross hybrid)
+                    const starSize = star.size * 1.2; // Slightly bigger on mobile
+                    const starX = star.x;
+                    const starY = star.y + parallaxOffset;
+                    
+                    ctx.fillStyle = star.color ? `${star.color}${Math.min(1.0, finalOpacity * 1.3)})` : `rgba(255, 255, 255, ${Math.min(1.0, finalOpacity * 1.3)})`;
+                    // Glow based on star properties (constellations glow MORE!)
+                    ctx.shadowBlur = star.glow || 3;
+                    ctx.shadowColor = ctx.fillStyle;
+                    
+                    // Draw 4-point star (sharp points)
+                    ctx.beginPath();
+                    ctx.moveTo(starX, starY - starSize); // Top
+                    ctx.lineTo(starX + starSize * 0.25, starY - starSize * 0.25);
+                    ctx.lineTo(starX + starSize, starY); // Right
+                    ctx.lineTo(starX + starSize * 0.25, starY + starSize * 0.25);
+                    ctx.lineTo(starX, starY + starSize); // Bottom
+                    ctx.lineTo(starX - starSize * 0.25, starY + starSize * 0.25);
+                    ctx.lineTo(starX - starSize, starY); // Left
+                    ctx.lineTo(starX - starSize * 0.25, starY - starSize * 0.25);
+                    ctx.closePath();
+                    ctx.fill();
+                    ctx.shadowBlur = 0;
+                } else {
+                    // Desktop: keep circles
+                    ctx.fillStyle = star.color ? `${star.color}${Math.min(1.0, finalOpacity)})` : `rgba(255, 255, 255, ${Math.min(1.0, finalOpacity)})`;
+                    // Glow based on star properties
+                    ctx.shadowBlur = star.glow || 3;
+                    ctx.shadowColor = ctx.fillStyle;
+                    ctx.beginPath();
+                    ctx.arc(star.x, star.y + parallaxOffset, star.size, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.shadowBlur = 0;
+                }
             });
             
-            // Render galaxy clusters with PARALLAX
-            galaxies.forEach(cluster => {
-                cluster.forEach(star => {
-                    // Update orbit
-                    star.angle += star.orbitSpeed;
+            // ===================================================================
+            // LAYER 2.5: CONSTELLATION LINES (FAINT, DASHED, TWINKLING!)
+            // ===================================================================
+            
+            // Slow twinkling sequence - each line twinkles in order
+            const twinkleSpeed = 0.3; // Slow speed
+            const twinklePhase = (time * twinkleSpeed) % constellationLines.length;
+            
+            let linesDrawn = 0;
+            let linesOffscreen = 0;
+            constellationLines.forEach(([star1Name, star2Name], lineIndex) => {
+                const star1 = stars.find(s => s.name === star1Name);
+                const star2 = stars.find(s => s.name === star2Name);
+                
+                if (star1 && star2) {
+                    // Apply same parallax as stars
+                    const depth1 = 1 - (star1.opacity * 0.5);
+                    const depth2 = 1 - (star2.opacity * 0.5);
+                    const parallaxOffset1 = -scrollY * parallaxFactor * depth1;
+                    const parallaxOffset2 = -scrollY * parallaxFactor * depth2;
                     
-                    // Calculate position with wobble
-                    const wobble = Math.sin(time + star.wobblePhase) * star.wobbleAmount;
-                    const x = star.centerX + Math.cos(star.angle) * star.radiusX + wobble;
-                    const y = star.centerY + Math.sin(star.angle) * star.radiusY + wobble * 0.5;
+                    const y1 = star1.y + parallaxOffset1;
+                    const y2 = star2.y + parallaxOffset2;
                     
-                    // Parallax: galaxies are DISTANT, move very slowly (opposite to scroll)
-                    const galaxyDepth = 0.7; // Far away
-                    const parallaxOffset = -scrollY * parallaxFactor * galaxyDepth;
+                    // Check if EITHER star is visible on screen
+                    const isVisible = (y1 >= 0 && y1 <= canvas.height) || (y2 >= 0 && y2 <= canvas.height);
                     
-                    // Calculate distance from center for fade effect
-                    const dx = x - star.centerX;
-                    const dy = y - star.centerY;
-                    const distanceFromCenter = Math.sqrt(dx * dx + dy * dy);
-                    const maxRadius = Math.max(Math.abs(star.radiusX), Math.abs(star.radiusY));
-                    const edgeFade = 1 - (distanceFromCenter / (maxRadius * 1.2)); // Fade at edges
-                    const finalOpacity = star.opacity * Math.max(0.2, edgeFade); // Minimum 20% opacity
-                    
-                    ctx.fillStyle = `rgba(255, 255, 255, ${finalOpacity})`;
-                    ctx.beginPath();
-                    ctx.arc(x, y + parallaxOffset, star.size, 0, Math.PI * 2);
-                    ctx.fill();
-                });
+                    if (isVisible) {
+                        // Sequential tracing animation - each line slowly illuminates then fades
+                        const linePhaseOffset = Math.abs(twinklePhase - lineIndex);
+                        const twinkleAmount = Math.max(0, 1 - (linePhaseOffset * 0.5)); // Fades out
+                        const baseOpacity = 0.03; // BARELY VISIBLE base
+                        const maxOpacity = 0.15; // Max when illuminating (still very subtle)
+                        const opacity = baseOpacity + (twinkleAmount * (maxOpacity - baseOpacity));
+                        
+                        // BARELY VISIBLE WHITE, dashed lines
+                        ctx.strokeStyle = `rgba(255, 255, 255, ${opacity})`;
+                        ctx.lineWidth = 1.5; // Thin
+                        ctx.setLineDash([5, 10]); // Dashed: 5px dash, 10px gap
+                        
+                        ctx.beginPath();
+                        ctx.moveTo(star1.x, y1);
+                        ctx.lineTo(star2.x, y2);
+                        ctx.stroke();
+                        linesDrawn++;
+                    } else {
+                        linesOffscreen++;
+                    }
+                } else {
+                    if (!star1) console.warn(`⚠️ Constellation star not found: ${star1Name}`);
+                    if (!star2) console.warn(`⚠️ Constellation star not found: ${star2Name}`);
+                }
             });
+            
+            ctx.setLineDash([]); // Reset to solid
+            
+            // Log every 120 frames (~2 seconds at 60fps)
+            if (Math.floor(Date.now() / 2000) !== window.lastLineLogTime) {
+                console.log(`🌟 Constellation lines: ${linesDrawn} visible, ${linesOffscreen} offscreen (scrollY: ${Math.round(scrollY)}px)`);
+                window.lastLineLogTime = Math.floor(Date.now() / 2000);
+            }
             
             // ===================================================================
             // SPARKLE RENDERING - Rare magical twinkles
@@ -1545,13 +2028,16 @@
             // SCATTERED RANDOM SPARKLES - OPTIMIZED
             // Instead of checking ALL stars every frame, check a random subset
             if (!explosionActive && Math.random() < 0.30) { // 30% of frames (3x original!)
-                const allStars = [...stars, ...galaxies.flat()];
+                // Flatten galaxies properly for new structure
+                const galaxyStars = galaxies.flatMap(g => g.stars || g);
+                const allStars = [...stars, ...galaxyStars];
+                
                 if (allStars.length > 0) {
                     // Check only 50 random stars per trigger (instead of all 435+)
                     const starsToCheck = 50;
                     // Base chance designed for 10% frame rate
                     // At 30% we're checking 3x more often, PLUS 50% more sparkles
-                    const sparkleChance = 0.0000275625 * 22.5; // TONS of sparkles!
+                    const sparkleChance = 0.0000275625 * 22.5 * 1.15 * 1.15 * 1.15 * 1.15; // +71% total!
                     
                     for (let i = 0; i < starsToCheck; i++) {
                         const randomStar = allStars[Math.floor(Math.random() * allStars.length)];
@@ -2223,7 +2709,7 @@
             } // End star rendering
             
             // ===================================================================
-            // POST-EXPLOSION STARGAZING ANIMATION
+            // POST-EXPLOSION STARGAZING ANIMATION (absolute at 120vh)
             // ===================================================================
             
             if (window.explosionEverStarted && explosionCompleted) {
@@ -2235,38 +2721,74 @@
                     const breatheOpacity = 0.40 + (breatheCycle * 0.05); // 0.40 to 0.45
                     const breatheSize = 2.48 + (breatheCycle * 0.04); // 2.48em to 2.52em
                     
-                    // Message cycling
-                    window.postExplosionMessageTimer = (window.postExplosionMessageTimer || 0) + 0.016;
-                    window.postExplosionMessageIndex = window.postExplosionMessageIndex || 0;
+                    // Calculate scroll-based fade (starts closer to white box)
+                    const scrollY = window.scrollY;
+                    const windowHeight = window.innerHeight;
+                    const whiteBoxEnd = windowHeight; // 100vh
+                    
+                    // Fade out ONLY when white box coming into view (120vh → 100vh)
+                    // Shorter fade range = fade starts closer to white box
+                    let scrollFadeMultiplier = 1.0;
+                    
+                    if (scrollY < windowHeight * 1.2) { // Below 120vh
+                        // Fade from 1.0 at 120vh to 0 at 100vh
+                        const fadeRange = windowHeight * 0.2; // 20vh fade range (was 50vh)
+                        const distanceFromWhiteBox = scrollY - whiteBoxEnd;
+                        scrollFadeMultiplier = Math.max(0, Math.min(1, distanceFromWhiteBox / fadeRange));
+                    }
                     
                     const messages = ["Stargaze with me for a moment...", "Breathe"];
                     
-                    // Switch message every 10 seconds
-                    if (window.postExplosionMessageTimer >= 10) {
-                        window.postExplosionMessageIndex = (window.postExplosionMessageIndex + 1) % 2;
-                        postStargazing.textContent = messages[window.postExplosionMessageIndex];
-                        window.postExplosionMessageTimer = 0;
+                    // EXACT SAME TRANSITION LOGIC AS PRE-EXPLOSION
+                    if (window.postExplosionTransitioning) {
+                        window.postExplosionTransitionTimer += 0.016;
+                        
+                        // Phase 1: Fade out (0 to 2 seconds)
+                        if (window.postExplosionTransitionTimer < 2) {
+                            window.postExplosionCurrentOpacity = 1 - (window.postExplosionTransitionTimer / 2);
+                            postStargazing.style.opacity = window.postExplosionCurrentOpacity * breatheOpacity * scrollFadeMultiplier;
+                            postStargazing.style.fontSize = breatheSize + 'em';
+                        }
+                        // Phase 2: Wait (2 to 3 seconds)
+                        else if (window.postExplosionTransitionTimer < 3) {
+                            window.postExplosionCurrentOpacity = 0;
+                            postStargazing.style.opacity = 0;
+                        }
+                        // Phase 3: Change text (exactly at 3 seconds)
+                        else if (window.postExplosionTransitionTimer >= 3 && window.postExplosionTransitionTimer < 3.02) {
+                            window.postExplosionMessageIndex = (window.postExplosionMessageIndex + 1) % messages.length;
+                            postStargazing.textContent = messages[window.postExplosionMessageIndex];
+                        }
+                        // Phase 4: Fade in (3 to 5 seconds)
+                        else if (window.postExplosionTransitionTimer < 5) {
+                            window.postExplosionCurrentOpacity = (window.postExplosionTransitionTimer - 3) / 2;
+                            postStargazing.style.opacity = window.postExplosionCurrentOpacity * breatheOpacity * scrollFadeMultiplier;
+                            postStargazing.style.fontSize = breatheSize + 'em';
+                        }
+                        // Phase 5: Complete (5+ seconds)
+                        else {
+                            window.postExplosionCurrentOpacity = 1;
+                            postStargazing.style.opacity = breatheOpacity * scrollFadeMultiplier;
+                            postStargazing.style.fontSize = breatheSize + 'em';
+                            window.postExplosionTransitioning = false;
+                            window.postExplosionTransitionTimer = 0;
+                            window.postExplosionMessageTimer = 0;
+                        }
                     }
-                    
-                    // Fade out when near declaration box (fade starts at 120vh, full fade at 100vh from top)
-                    const scrollY = window.scrollY;
-                    const windowHeight = window.innerHeight;
-                    const declarationEnd = windowHeight; // 100vh
-                    
-                    let scrollFade = 1;
-                    const fadeEnd = declarationEnd + (windowHeight * 0.2); // 120vh - start fading
-                    
-                    if (scrollY < declarationEnd) {
-                        scrollFade = 0; // Fully hidden above declaration
-                    } else if (scrollY < fadeEnd) {
-                        // Fade in from 100vh to 120vh
-                        scrollFade = (scrollY - declarationEnd) / (windowHeight * 0.2); // 0 to 1
+                    // Normal display - count to 10 seconds
+                    else {
+                        window.postExplosionMessageTimer += 0.016;
+                        
+                        // Apply breathing + scroll fade
+                        postStargazing.style.opacity = breatheOpacity * scrollFadeMultiplier;
+                        postStargazing.style.fontSize = breatheSize + 'em';
+                        
+                        // Start transition after 10 seconds
+                        if (window.postExplosionMessageTimer >= 10) {
+                            window.postExplosionTransitioning = true;
+                            window.postExplosionTransitionTimer = 0;
+                        }
                     }
-                    // else scrollFade = 1 (fully visible below 120vh)
-                    
-                    // Apply breathing + scroll fade
-                    postStargazing.style.opacity = breatheOpacity * scrollFade;
-                    postStargazing.style.fontSize = breatheSize + 'em';
                 }
             }
             
@@ -2292,10 +2814,10 @@
                 verse2.style.display = 'none';
                 verse2.style.opacity = 0;
                 
-                // Phase 0: Verse 3 fades in slowly from black (0-2.5s)
-                if (explosionTimer < 2.5) {
+                // Phase 0: Verse 3 fades in slowly from black (0-3.5s, stays 1s longer)
+                if (explosionTimer < 3.5) {
                     const verse3 = document.getElementById('verse-3-explosion');
-                    const fadeProgress = explosionTimer / 2.5; // 0 to 1 over 2.5 seconds
+                    const fadeProgress = Math.min(explosionTimer / 2.5, 1); // Fade in over first 2.5s, then hold
                     verse3.style.opacity = fadeProgress;
                     verse3.style.display = 'block';
                     
@@ -2383,7 +2905,7 @@
                     // Exponential expansion - like actual inflation
                     whiteExpansionRadius = Math.pow(expandProgress, 1.2) * maxRadius * 1.3;
                     
-                    // Keep verse 3 visible UNTIL 6 seconds, then swap
+                    // Keep verse 3 visible UNTIL 6 seconds, then hide it
                     if (explosionTimer < 6) {
                         const verse3 = document.getElementById('verse-3-explosion');
                         verse3.style.opacity = 1;
@@ -2392,37 +2914,7 @@
                         // HIDE old verse 3 at 6s (middle of BOOM)
                         const oldVerse3 = document.getElementById('verse-3-explosion');
                         oldVerse3.style.display = 'none';
-                        
-                        // CREATE NEW VERSE 3 at 6s
-                        let newVerse3 = document.getElementById('verse-3-absolute');
-                        if (!newVerse3) {
-                            const windowHeight = window.innerHeight;
-                            // Position based on where we'll AUTO-SCROLL to (155vh)
-                            const targetScrollY = windowHeight * 1.55; // 155vh - where we scroll during white flash
-                            const absoluteTop = targetScrollY + (windowHeight * 0.7); // 155vh + 70vh = 225vh
-                            
-                            newVerse3 = document.createElement('div');
-                            newVerse3.id = 'verse-3-absolute';
-                            newVerse3.textContent = '...and there was light.';
-                            newVerse3.style.position = 'absolute';
-                            newVerse3.style.top = absoluteTop + 'px';
-                            newVerse3.style.left = '50%';
-                            newVerse3.style.transform = 'translateX(-50%)';
-                            newVerse3.style.textAlign = 'center';
-                            newVerse3.style.fontSize = '2em';
-                            newVerse3.style.lineHeight = '1.8';
-                            newVerse3.style.color = 'white';
-                            newVerse3.style.fontStyle = 'italic';
-                            newVerse3.style.zIndex = '1000';
-                            newVerse3.style.opacity = 1;
-                            newVerse3.style.display = 'block';
-                            newVerse3.style.pointerEvents = 'none';
-                            newVerse3.style.width = '80%';
-                            newVerse3.style.maxWidth = '900px';
-                            
-                            document.getElementById('scroll-container').appendChild(newVerse3);
-                            console.log(`✅ Created NEW absolute verse 3 at ${absoluteTop}px (225vh - positioned for scroll to 155vh)`);
-                        }
+                        // New verse 3 will be created in Phase 4 (white flash)
                     }
                     
                     // Keep black overlay at 100%
@@ -2543,10 +3035,47 @@
                     ctx.fillStyle = 'white';
                     ctx.fillRect(0, 0, canvas.width, canvas.height);
                     
-                    // AUTO-SCROLL during white flash - move up to just below stargazing
+                    // CREATE NEW VERSE 3 during white flash (once)
+                    let newVerse3 = document.getElementById('verse-3-absolute');
+                    if (!newVerse3) {
+                        const windowHeight = window.innerHeight;
+                        const isMobile = window.innerWidth <= 768;
+                        
+                        // Position as a caption 75% down from where auto-scroll lands
+                        // Mobile lands at 200vh, caption at 200vh + 75% = 200.75vh
+                        // Desktop lands at 170vh, caption at 170vh + 75% = 170.75vh
+                        const landingPosition = isMobile ? 2.0 : 1.7; // Match auto-scroll!
+                        const absoluteTop = windowHeight * (landingPosition + 0.75); // Caption 75% down
+                        
+                        newVerse3 = document.createElement('div');
+                        newVerse3.id = 'verse-3-absolute';
+                        newVerse3.textContent = '...and there was light.';
+                        newVerse3.style.position = 'absolute';
+                        newVerse3.style.top = absoluteTop + 'px';
+                        newVerse3.style.left = '50%';
+                        newVerse3.style.transform = 'translateX(-50%)';
+                        newVerse3.style.textAlign = 'center';
+                        newVerse3.style.fontSize = isMobile ? '1.5em' : '2em';
+                        newVerse3.style.lineHeight = '1.8';
+                        newVerse3.style.color = 'white';
+                        newVerse3.style.fontStyle = 'italic';
+                        newVerse3.style.zIndex = '5000';
+                        newVerse3.style.opacity = 1;
+                        newVerse3.style.display = 'block';
+                        newVerse3.style.pointerEvents = 'none';
+                        newVerse3.style.width = '80%';
+                        newVerse3.style.maxWidth = '900px';
+                        
+                        document.getElementById('scroll-container').appendChild(newVerse3);
+                        console.log(`✅ Created verse 3 at ${absoluteTop}px during white flash!`);
+                    }
+                    
+                    // AUTO-SCROLL during white flash - move to show verse 3 nicely
                     if (!window.whiteFlashScrollDone) {
                         const windowHeight = window.innerHeight;
-                        const targetScroll = windowHeight * 1.55; // 155vh - stargazing completely out of frame
+                        const isMobile = window.innerWidth <= 768;
+                        // Lower scroll position on mobile (120vh vs 140vh desktop)
+                        const targetScroll = windowHeight * (isMobile ? 2.0 : 1.7); // Mobile 200vh, Desktop 170vh (lower!)
                         
                         window.scrollTo({
                             top: targetScroll,
@@ -2556,8 +3085,6 @@
                         window.whiteFlashScrollDone = true;
                         console.log(`📜 Auto-scrolled to ${targetScroll}px during white flash`);
                     }
-                    
-                    // Old verse already hidden in Phase 3, new verse already created
                     
                     // KEEP black overlay at full opacity
                     fadeOverlay.style.opacity = 1;
@@ -2584,41 +3111,51 @@
                     explosionCompleted = true;
                     fadeOverlay.style.opacity = 0; // Lock at 0
                     
+                    // RESET canvas z-index back to 0 (behind content)
+                    canvas.style.zIndex = '0';
+                    
                     // New verse 3 already created in Phase 4 - just make sure old one is hidden
                     const oldVerse3 = document.getElementById('verse-3-explosion');
                     if (oldVerse3) {
                         oldVerse3.style.display = 'none';
                     }
                     
-                    // CREATE BRAND NEW STARGAZING MESSAGE - fresh start!
+                    // CREATE POST-EXPLOSION STARGAZING - LOWER on mobile
                     let postExplosionStargazing = document.getElementById('post-explosion-stargazing');
                     if (!postExplosionStargazing) {
+                        const isMobile = window.innerWidth <= 768;
                         postExplosionStargazing = document.createElement('div');
                         postExplosionStargazing.id = 'post-explosion-stargazing';
                         postExplosionStargazing.textContent = 'Stargaze with me for a moment...';
-                        postExplosionStargazing.style.position = 'absolute'; // ABSOLUTE so it's anchored
-                        postExplosionStargazing.style.top = '150vh'; // More space below declaration (100vh)
+                        postExplosionStargazing.style.position = 'absolute'; // ABSOLUTE - sits in scroll
+                        postExplosionStargazing.style.top = isMobile ? '190vh' : '160vh'; // Lower on mobile
                         postExplosionStargazing.style.left = '50%';
                         postExplosionStargazing.style.transform = 'translateX(-50%)';
-                        postExplosionStargazing.style.fontSize = '2.5em';
+                        postExplosionStargazing.style.fontSize = isMobile ? '1.5em' : '2.5em'; // Smaller on mobile
                         postExplosionStargazing.style.fontStyle = 'italic';
                         postExplosionStargazing.style.color = 'rgba(255, 255, 255, 1)';
                         postExplosionStargazing.style.textAlign = 'center';
-                        postExplosionStargazing.style.opacity = 0; // Start hidden, will fade in
-                        postExplosionStargazing.style.zIndex = '3000'; // ABOVE EVERYTHING
+                        postExplosionStargazing.style.opacity = 0.42;
+                        postExplosionStargazing.style.zIndex = '3000';
                         postExplosionStargazing.style.pointerEvents = 'none';
                         postExplosionStargazing.style.fontWeight = '300';
                         postExplosionStargazing.style.letterSpacing = '2px';
-                        
-                        // Append to scroll-container so absolute positioning works
                         document.getElementById('scroll-container').appendChild(postExplosionStargazing);
                         
-                        // Start breathing timer
-                        window.postExplosionBreatheTimer = 0;
+                        // Initialize transition variables
                         window.postExplosionMessageIndex = 0;
                         window.postExplosionMessageTimer = 0;
-                        
-                        console.log("🌟 Created NEW stargazing message at 150vh (below declaration)");
+                        window.postExplosionTransitioning = false;
+                        window.postExplosionTransitionTimer = 0;
+                        window.postExplosionCurrentOpacity = 1;
+                        console.log(`🌟 Created post-explosion stargazing at ${isMobile ? '160vh' : '140vh'} (absolute)`);
+                    }
+                    
+                    // Hide PRE-explosion stargazing message
+                    const preExplosionMsg = document.getElementById('stargazing-message');
+                    if (preExplosionMsg) {
+                        preExplosionMsg.style.opacity = 0;
+                        preExplosionMsg.style.display = 'none';
                     }
                     
                     // Hide verses 1, 2 and tap prompt permanently
@@ -2635,6 +3172,60 @@
         }
         
         render();
+        
+        // ===================================================================
+        // CLICK/TAP HANDLERS - AT THE VERY BOTTOM!
+        // Enabled when "Click or tap" hits MID-SCREEN, then enabled FOREVER
+        // ===================================================================
+        
+        let tapEnabled = false; // Starts disabled
+        
+        // Check every animation frame if tap prompt has reached mid-screen
+        function checkTapPrompt() {
+            if (tapEnabled || explosionCompleted) return; // Already enabled or exploded
+            
+            const tapPromptElement = document.getElementById('tap-prompt');
+            if (!tapPromptElement) return;
+            
+            const tapPromptRect = tapPromptElement.getBoundingClientRect();
+            const windowHeight = window.innerHeight;
+            const midScreen = windowHeight / 2;
+            const opacity = parseFloat(tapPromptElement.style.opacity || 0);
+            
+            // If tap prompt is at or above MID-SCREEN and visible, enable tap FOREVER
+            if (tapPromptRect.top <= midScreen && opacity > 0.1) {
+                tapEnabled = true;
+                console.log("✅ TAP ENABLED - prompt hit mid-screen!");
+            }
+        }
+        
+        // Check on every render
+        setInterval(checkTapPrompt, 100); // Check 10x per second
+        
+        document.addEventListener('click', (e) => {
+            if (explosionCompleted) return;
+            
+            console.log("🖱️ CLICK:", {
+                tapEnabled,
+                canTrigger: tapEnabled
+            });
+            
+            if (tapEnabled) {
+                console.log("✅ TRIGGERING EXPLOSION");
+                triggerExplosion();
+            } else {
+                console.log("❌ Scroll until 'Click or tap' hits mid-screen!");
+            }
+        });
+        
+        document.addEventListener('touchstart', (e) => {
+            if (explosionCompleted) return;
+            
+            if (tapEnabled) {
+                e.preventDefault();
+                triggerExplosion();
+            }
+        });
         
         // Handle window resize
         window.addEventListener('resize', () => {
