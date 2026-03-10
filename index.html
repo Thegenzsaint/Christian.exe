@@ -370,35 +370,37 @@
             
             /* Stargazing section - appropriate size */
             #stargazing-section {
-                height: 180vh !important;
+                height: 200vh !important; /* Taller for more space */
             }
             
-            /* Genesis section - calculated to center tap prompt perfectly */
+            /* Genesis section - TALLER so tap prompt has room below it */
             #genesis-section {
-                min-height: 160vh !important; /* Extra room below tap prompt for centering (was 110vh) */
+                min-height: 200vh !important; /* More room for tap prompt (was 160vh) */
             }
             
             /* Stargazing message - bigger, 2 lines, flows naturally */
             #stargazing-message {
+                position: absolute !important; /* Glued to spot, doesn't follow camera! */
                 font-size: 1.171875em !important;
                 width: 320px !important;
                 max-width: 320px !important;
                 line-height: 1.2 !important;
+                top: 103vh !important; /* Way higher - just under white box so it fades properly */
             }
             
-            /* Verses positioned evenly */
+            /* Verses positioned evenly with MORE SPACE */
             #verse-1 {
-                top: 20vh !important;
+                top: 30vh !important; /* More space from top */
             }
             
             #verse-2 {
-                top: 65vh !important;
+                top: 80vh !important; /* Way more space between verses */
             }
             
             /* Tap prompt - centered perfectly */
             #tap-prompt {
                 font-size: 1em !important;
-                top: 110vh !important;
+                top: 130vh !important; /* Even lower to give verse 2 more space */
                 white-space: nowrap !important;
             }
             
@@ -418,7 +420,8 @@
             .scroll-hint {
                 display: block !important;
                 bottom: -60px !important; /* Pull it WAY down below white box */
-                font-size: 0.9em !important;
+                font-size: 0.75em !important; /* Even smaller to fit on one line */
+                white-space: nowrap !important; /* NO WRAPPING! */
             }
             
             /* Verse text smaller on mobile */
@@ -566,12 +569,28 @@
             
             console.log("=== EXPLOSION TRIGGERED ===");
             
+            // CREATE INSTANT BLACK BLOCKER - covers everything immediately!
+            const blackBlocker = document.createElement('div');
+            blackBlocker.id = 'instant-black-blocker';
+            blackBlocker.style.position = 'fixed';
+            blackBlocker.style.top = '0';
+            blackBlocker.style.left = '0';
+            blackBlocker.style.width = '100vw';
+            blackBlocker.style.height = '100vh';
+            blackBlocker.style.backgroundColor = 'black';
+            blackBlocker.style.zIndex = '9999'; // Above everything!
+            blackBlocker.style.pointerEvents = 'none';
+            document.body.appendChild(blackBlocker);
+            
+            // INSTANT BLACK - set fadeOverlay too
+            fadeOverlay.style.opacity = 1;
+            fadeOverlay.style.transition = 'none'; // No transition
+            
+            // HIDE CANVAS immediately - no background visible during scroll!
+            canvas.style.opacity = 0;
+            
             // Set permanent flag - scroll handler will NEVER touch verses again
             window.explosionEverStarted = true;
-            
-            // IMMEDIATELY lock black overlay at full opacity - don't let it fade during scroll
-            fadeOverlay.style.opacity = 1;
-            fadeOverlay.style.transition = 'none'; // No transition during scroll
             
             // IMMEDIATELY VANISH BOTH tap prompts - preserve the magic!
             tapPrompt.style.opacity = 0;
@@ -639,16 +658,25 @@
             
             window.scrollTo({
                 top: explosionScrollTarget,
-                behavior: 'smooth'
+                behavior: 'instant' // INSTANT scroll - no animation!
             });
             
             // Wait for scroll to complete, then start explosion
             setTimeout(() => {
+                // REMOVE BLACK BLOCKER - explosion takes over
+                const blackBlocker = document.getElementById('instant-black-blocker');
+                if (blackBlocker) {
+                    blackBlocker.remove();
+                }
+                
                 explosionActive = true;
                 explosionTimer = 0;
                 explosionParticles = [];
                 centerPoint = { size: 0, opacity: 0 };
                 whiteExpansionRadius = 0;
+                
+                // SHOW CANVAS again for explosion
+                canvas.style.opacity = 1;
                 
                 // RAISE CANVAS Z-INDEX so explosion is visible above genesis section
                 canvas.style.zIndex = '10';
@@ -865,51 +893,69 @@
             // RA: 0-24 hours maps to canvas width
             let x = (ra / 24) * canvas.width;
             
-            // Scorpius: shift LEFT for mobile viewing
-            if (["Antares", "Dschubba", "Graffias", "Sargas", "Shaula", "Lesath"].includes(name)) {
+            // MOBILE: Shift ALL constellations MORE LEFT (30% of X position = far left column)
+            if (isConstellation && isMobile) {
+                x = x * 0.3; // Far left for mobile viewing!
+            }
+            // Desktop: Only shift Scorpius left
+            else if (["Antares", "Dschubba", "Graffias", "Sargas", "Shaula", "Lesath"].includes(name) && !isMobile) {
                 x = x * 0.4; // Shift to 40% (left side of screen)
             }
             
             // CONSTELLATION STARS: COMPACT and PROPER proportions!
-            // ALL 5 constellations fit in 0-1500px so they're ALL visible!
+            // ALL 5 constellations - MOBILE gets them compressed into 0-1000px!
             let y;
             let sizeScale = 1.0; // Default size
             
             if (isConstellation) {
-                // Orion: 100-400px (300px tall)
+                // MOBILE: Compress vertically and make MUCH smaller so ALL are visible
+                const mobileCompression = isMobile ? 0.6 : 1.0; // 60% of desktop height on mobile
+                const mobileSizeReduction = isMobile ? 0.5 : 1.0; // 50% of desktop size on mobile (smaller!)
+                
+                // Orion: 100-400px desktop, 60-240px mobile (180px tall mobile)
                 if (["Betelgeuse", "Bellatrix", "Alnilam", "Alnitak", "Saiph", "Mintaka", "Rigel"].includes(name)) {
                     const decMin = -10; const decMax = 8;
                     const decNormalized = (dec - decMin) / (decMax - decMin);
-                    y = 100 + (300 * (1 - decNormalized));
-                    sizeScale = 0.8;
+                    const baseY = 100;
+                    const rangeHeight = 300;
+                    y = baseY + (rangeHeight * (1 - decNormalized) * mobileCompression);
+                    sizeScale = 0.6 * mobileSizeReduction;
                 }
-                // Big Dipper: 450-750px (300px tall)
+                // Big Dipper: 450-750px desktop, 270-450px mobile (180px tall mobile)
                 else if (["Dubhe", "Merak", "Phecda", "Megrez", "Alioth", "Mizar", "Alkaid"].includes(name)) {
                     const decMin = 49; const decMax = 62;
                     const decNormalized = (dec - decMin) / (decMax - decMin);
-                    y = 450 + (300 * (1 - decNormalized));
-                    sizeScale = 0.6;
+                    const baseY = isMobile ? 270 : 450;
+                    const rangeHeight = 300;
+                    y = baseY + (rangeHeight * (1 - decNormalized) * mobileCompression);
+                    sizeScale = 0.6 * mobileSizeReduction;
                 }
-                // Cassiopeia: 800-1050px (250px tall)
+                // Cassiopeia: 800-1050px desktop, 460-610px mobile (150px tall mobile)
                 else if (["Schedar", "Caph", "Ruchbah"].includes(name)) {
                     const decMin = 56; const decMax = 61;
                     const decNormalized = (dec - decMin) / (decMax - decMin);
-                    y = 800 + (250 * (1 - decNormalized));
-                    sizeScale = 0.5;
+                    const baseY = isMobile ? 460 : 800;
+                    const rangeHeight = 250;
+                    y = baseY + (rangeHeight * (1 - decNormalized) * mobileCompression);
+                    sizeScale = 0.5 * mobileSizeReduction;
                 }
-                // Leo: 1100-1300px (200px tall)
+                // Leo: 1100-1300px desktop, 620-740px mobile (120px tall mobile)
                 else if (["Regulus", "Denebola"].includes(name)) {
                     const decMin = 11; const decMax = 15;
                     const decNormalized = (dec - decMin) / (decMax - decMin);
-                    y = 1100 + (200 * (1 - decNormalized));
-                    sizeScale = 0.5;
+                    const baseY = isMobile ? 620 : 1100;
+                    const rangeHeight = 200;
+                    y = baseY + (rangeHeight * (1 - decNormalized) * mobileCompression);
+                    sizeScale = 0.5 * mobileSizeReduction;
                 }
-                // Scorpius: 1350-1600px (250px tall)
+                // Scorpius: 1350-1600px desktop, 750-900px mobile (150px tall mobile)
                 else if (["Antares", "Dschubba", "Graffias", "Sargas", "Shaula", "Lesath"].includes(name)) {
                     const decMin = -44; const decMax = -22;
                     const decNormalized = (dec - decMin) / (decMax - decMin);
-                    y = 1350 + (250 * (1 - decNormalized));
-                    sizeScale = 0.5;
+                    const baseY = isMobile ? 750 : 1350;
+                    const rangeHeight = 250;
+                    y = baseY + (rangeHeight * (1 - decNormalized) * mobileCompression);
+                    sizeScale = 0.5 * mobileSizeReduction;
                 }
             } else {
                 // NON-CONSTELLATION: Spread across full virtual field
@@ -942,7 +988,7 @@
                 twinklePhase: Math.random() * Math.PI * 2,
                 isReal: true, // Mark as real star
                 isConstellation: isConstellation, // Mark constellation stars
-                glow: isConstellation ? 8 : (brightness > 0.7 ? 5 : 3) // Constellations glow more!
+                glow: isConstellation ? (isMobile ? 3 : 8) : (brightness > 0.7 ? 5 : 3) // Less glow on mobile!
             });
         });
         
@@ -1099,32 +1145,35 @@
         // MOBILE GALAXIES - FIXED IN BACKGROUND (upper-left area, spaced vertically)
         console.log("🌌 Creating BACKGROUND galaxies (upper-left, spaced)...");
         
+        // Scale down galaxies on mobile (50% size) so they look like stars not blobs
+        const galaxyScale = isMobile ? 0.5 : 1.0;
+        
         // Galaxy 1: Top-left - MASSIVE SPIRAL (moved more left)
         galaxies.push({
-            centerX: canvas.width * 0.15, // MORE LEFT (was 0.2)
+            centerX: canvas.width * 0.15, // LEFT SIDE
             centerY: canvas.height * 0.25,
             type: 'galaxy',
             galaxyType: 'spiral',
             name: 'Andromeda Galaxy',
-            stars: createGalaxyStars(350, canvas.width * 0.15, canvas.height * 0.25, 280, 'spiral')
+            stars: createGalaxyStars(Math.floor(350 * galaxyScale), canvas.width * 0.15, canvas.height * 0.25, 280 * galaxyScale, 'spiral')
         });
         
         // Galaxy 2: Mid-left - BIGGER CLUSTER (moved more left)
         galaxies.push({
-            centerX: canvas.width * 0.18, // MORE LEFT (was 0.25)
+            centerX: canvas.width * 0.18, // LEFT SIDE
             centerY: canvas.height * 0.52,
             type: 'cluster',
             name: 'Pleiades',
-            stars: createGalaxyStars(300, canvas.width * 0.18, canvas.height * 0.52, 260, 'cluster')
+            stars: createGalaxyStars(Math.floor(300 * galaxyScale), canvas.width * 0.18, canvas.height * 0.52, 260 * galaxyScale, 'cluster')
         });
         
         // Galaxy 3: Lower-left - BIGGER CLUSTER (moved more left)
         galaxies.push({
-            centerX: canvas.width * 0.12, // MORE LEFT (was 0.18)
+            centerX: canvas.width * 0.12, // LEFT SIDE
             centerY: canvas.height * 0.82,
             type: 'cluster',
             name: 'Beehive Cluster',
-            stars: createGalaxyStars(270, canvas.width * 0.12, canvas.height * 0.82, 240, 'cluster')
+            stars: createGalaxyStars(Math.floor(270 * galaxyScale), canvas.width * 0.12, canvas.height * 0.82, 240 * galaxyScale, 'cluster')
         });
         
         console.log(`🌌 Created ${galaxies.length} BACKGROUND galaxies`);
@@ -1603,13 +1652,13 @@
             // Left stargazing section
             if (!nowInStargazing) {
                 if (inStargazingSection) {
-                    console.log("LEFT stargazing section");
+                    console.log("LEFT stargazing section - keeping message visible!");
                     inStargazingSection = false;
                 }
-                // Only hide if explosion hasn't started
-                if (!window.explosionEverStarted) {
+                // DON'T hide message - keep it visible when scrolling past!
+                // Only hide if explosion hasn't started AND we're scrolling UP (before stargazing)
+                if (!window.explosionEverStarted && scrollY < declarationEnd) {
                     stargazingMessage.style.opacity = 0;
-                    stargazingMessage.style.top = '40%'; // Higher (was 50%)
                 }
                 messageTimer = 0;
                 isTransitioning = false;
@@ -1628,9 +1677,9 @@
             if (stargazingProgress < 0.15) {
                 scrollFadeMultiplier = stargazingProgress / 0.15;
             }
-            // Fade out during last 40% when scrolling up
-            else if (stargazingProgress > 0.6) {
-                scrollFadeMultiplier = 1 - ((stargazingProgress - 0.6) / 0.4);
+            // KEEP AT 100% longer! Only fade out in LAST 10% (90-100%)
+            else if (stargazingProgress > 0.9) {
+                scrollFadeMultiplier = 1 - ((stargazingProgress - 0.9) / 0.1);
             }
             
             // Move message up as scrolling
@@ -1721,9 +1770,9 @@
             const genesisStart = stargazingEnd;
             
             // Black fade gradient
-            // Mobile: gradient in LAST 30vh of stargazing (stars → gradient → verse 1)
+            // Mobile: gradient starts at 350vh, ends at 360vh (10vh fade)
             // Desktop: starts 15vh before genesis
-            const fadeEarlier = isMobile ? 0.3 : 0.15; // Mobile 30vh gradient, desktop 15vh
+            const fadeEarlier = isMobile ? -0.5 : 0.15; // Mobile starts 50vh AFTER genesis (300vh + 50vh = 350vh), desktop 15vh before
             const blackFadeStart = genesisStart - (windowHeight * fadeEarlier);
             
             // Update stargazing messages (ONLY if explosion hasn't happened)
@@ -1788,8 +1837,9 @@
             // Handle black overlay fade separately (ONLY if explosion is not happening)
             if (!explosionActive && !explosionCompleted) {
                 if (scrollY > blackFadeStart) {
-                    // Fade SUPER FAST over 15vh - full black by 315vh (way before verse 1 at 350vh)
-                    const fadeProgress = Math.min(1, (scrollY - blackFadeStart) / (windowHeight * 0.15));
+                    // Fade over 10vh on mobile (340vh to 350vh), 15vh on desktop
+                    const fadeDuration = isMobile ? 0.1 : 0.15;
+                    const fadeProgress = Math.min(1, (scrollY - blackFadeStart) / (windowHeight * fadeDuration));
                     fadeOverlay.style.opacity = fadeProgress;
                 } else {
                     // Only reset fade overlay if explosion hasn't started
@@ -1799,6 +1849,30 @@
                 }
             }
         });
+        
+        // ===================================================================
+        // TAP ENABLE FUNCTION (must be before render loop!)
+        // ===================================================================
+        
+        let tapEnabled = false; // Starts disabled
+        
+        // Check if tap prompt has reached mid-screen (called in render loop)
+        function checkTapPrompt() {
+            if (tapEnabled || explosionCompleted) return; // Already enabled or exploded
+            
+            const tapPromptElement = document.getElementById('tap-prompt');
+            if (!tapPromptElement) return;
+            
+            const tapPromptRect = tapPromptElement.getBoundingClientRect();
+            const windowHeight = window.innerHeight;
+            const midScreen = windowHeight / 2;
+            
+            // Enable tap when prompt reaches MID-SCREEN (regardless of opacity)
+            if (tapPromptRect.top <= midScreen && tapPromptRect.bottom >= 0) {
+                tapEnabled = true;
+                console.log("✅ TAP ENABLED - prompt at mid-screen!");
+            }
+        }
         
         // ===================================================================
         // RENDER LOOP
@@ -2790,10 +2864,10 @@
                 verse2.style.display = 'none';
                 verse2.style.opacity = 0;
                 
-                // Phase 0: Verse 3 fades in slowly from black (0-2.5s)
-                if (explosionTimer < 2.5) {
+                // Phase 0: Verse 3 fades in slowly from black (0-3.5s, stays 1s longer)
+                if (explosionTimer < 3.5) {
                     const verse3 = document.getElementById('verse-3-explosion');
-                    const fadeProgress = explosionTimer / 2.5; // 0 to 1 over 2.5 seconds
+                    const fadeProgress = Math.min(explosionTimer / 2.5, 1); // Fade in over first 2.5s, then hold
                     verse3.style.opacity = fadeProgress;
                     verse3.style.display = 'block';
                     
@@ -2881,7 +2955,7 @@
                     // Exponential expansion - like actual inflation
                     whiteExpansionRadius = Math.pow(expandProgress, 1.2) * maxRadius * 1.3;
                     
-                    // Keep verse 3 visible UNTIL 6 seconds, then swap
+                    // Keep verse 3 visible UNTIL 6 seconds, then hide it
                     if (explosionTimer < 6) {
                         const verse3 = document.getElementById('verse-3-explosion');
                         verse3.style.opacity = 1;
@@ -2890,37 +2964,7 @@
                         // HIDE old verse 3 at 6s (middle of BOOM)
                         const oldVerse3 = document.getElementById('verse-3-explosion');
                         oldVerse3.style.display = 'none';
-                        
-                        // CREATE NEW VERSE 3 at 6s
-                        let newVerse3 = document.getElementById('verse-3-absolute');
-                        if (!newVerse3) {
-                            const windowHeight = window.innerHeight;
-                            // Position based on where we'll AUTO-SCROLL to (155vh)
-                            const targetScrollY = windowHeight * 1.55; // 155vh - where we scroll during white flash
-                            const absoluteTop = targetScrollY + (windowHeight * 0.7); // 155vh + 70vh = 225vh
-                            
-                            newVerse3 = document.createElement('div');
-                            newVerse3.id = 'verse-3-absolute';
-                            newVerse3.textContent = '...and there was light.';
-                            newVerse3.style.position = 'absolute';
-                            newVerse3.style.top = absoluteTop + 'px';
-                            newVerse3.style.left = '50%';
-                            newVerse3.style.transform = 'translateX(-50%)';
-                            newVerse3.style.textAlign = 'center';
-                            newVerse3.style.fontSize = '2em';
-                            newVerse3.style.lineHeight = '1.8';
-                            newVerse3.style.color = 'white';
-                            newVerse3.style.fontStyle = 'italic';
-                            newVerse3.style.zIndex = '1000';
-                            newVerse3.style.opacity = 1;
-                            newVerse3.style.display = 'block';
-                            newVerse3.style.pointerEvents = 'none';
-                            newVerse3.style.width = '80%';
-                            newVerse3.style.maxWidth = '900px';
-                            
-                            document.getElementById('scroll-container').appendChild(newVerse3);
-                            console.log(`✅ Created NEW absolute verse 3 at ${absoluteTop}px (225vh - positioned for scroll to 155vh)`);
-                        }
+                        // New verse 3 will be created in Phase 4 (white flash)
                     }
                     
                     // Keep black overlay at 100%
@@ -3041,12 +3085,47 @@
                     ctx.fillStyle = 'white';
                     ctx.fillRect(0, 0, canvas.width, canvas.height);
                     
+                    // CREATE NEW VERSE 3 during white flash (once)
+                    let newVerse3 = document.getElementById('verse-3-absolute');
+                    if (!newVerse3) {
+                        const windowHeight = window.innerHeight;
+                        const isMobile = window.innerWidth <= 768;
+                        
+                        // Position as a caption 75% down from where auto-scroll lands
+                        // Mobile lands at 220vh, caption at 220vh + 75% = 220.75vh
+                        // Desktop lands at 170vh, caption at 170vh + 75% = 170.75vh
+                        const landingPosition = isMobile ? 3.6 : 1.7; // Mobile 360vh, Desktop 170vh - match auto-scroll!
+                        const absoluteTop = windowHeight * (landingPosition + 0.75); // Caption 75% down
+                        
+                        newVerse3 = document.createElement('div');
+                        newVerse3.id = 'verse-3-absolute';
+                        newVerse3.textContent = '...and there was light.';
+                        newVerse3.style.position = 'absolute';
+                        newVerse3.style.top = absoluteTop + 'px';
+                        newVerse3.style.left = '50%';
+                        newVerse3.style.transform = 'translateX(-50%)';
+                        newVerse3.style.textAlign = 'center';
+                        newVerse3.style.fontSize = isMobile ? '1.5em' : '2em';
+                        newVerse3.style.lineHeight = '1.8';
+                        newVerse3.style.color = 'white';
+                        newVerse3.style.fontStyle = 'italic';
+                        newVerse3.style.zIndex = '5000';
+                        newVerse3.style.opacity = 1;
+                        newVerse3.style.display = 'block';
+                        newVerse3.style.pointerEvents = 'none';
+                        newVerse3.style.width = '80%';
+                        newVerse3.style.maxWidth = '900px';
+                        
+                        document.getElementById('scroll-container').appendChild(newVerse3);
+                        console.log(`✅ Created verse 3 at ${absoluteTop}px during white flash!`);
+                    }
+                    
                     // AUTO-SCROLL during white flash - move to show verse 3 nicely
                     if (!window.whiteFlashScrollDone) {
                         const windowHeight = window.innerHeight;
                         const isMobile = window.innerWidth <= 768;
-                        // Scroll to 140vh (mid-stargazing) for both
-                        const targetScroll = windowHeight * 1.4; // 140vh
+                        // Lower scroll position on mobile (120vh vs 140vh desktop)
+                        const targetScroll = windowHeight * (isMobile ? 3.6 : 1.7); // Mobile 360vh, Desktop 170vh
                         
                         window.scrollTo({
                             top: targetScroll,
@@ -3056,8 +3135,6 @@
                         window.whiteFlashScrollDone = true;
                         console.log(`📜 Auto-scrolled to ${targetScroll}px during white flash`);
                     }
-                    
-                    // Old verse already hidden in Phase 3, new verse already created
                     
                     // KEEP black overlay at full opacity
                     fadeOverlay.style.opacity = 1;
@@ -3093,17 +3170,18 @@
                         oldVerse3.style.display = 'none';
                     }
                     
-                    // CREATE POST-EXPLOSION STARGAZING at 140vh absolute (sits in scroll)
+                    // CREATE POST-EXPLOSION STARGAZING - LOWER on mobile
                     let postExplosionStargazing = document.getElementById('post-explosion-stargazing');
                     if (!postExplosionStargazing) {
+                        const isMobile = window.innerWidth <= 768;
                         postExplosionStargazing = document.createElement('div');
                         postExplosionStargazing.id = 'post-explosion-stargazing';
                         postExplosionStargazing.textContent = 'Stargaze with me for a moment...';
                         postExplosionStargazing.style.position = 'absolute'; // ABSOLUTE - sits in scroll
-                        postExplosionStargazing.style.top = '140vh'; // Higher (was 160vh)
+                        postExplosionStargazing.style.top = isMobile ? '250vh' : '160vh'; // Mobile 250vh, Desktop 160vh
                         postExplosionStargazing.style.left = '50%';
                         postExplosionStargazing.style.transform = 'translateX(-50%)';
-                        postExplosionStargazing.style.fontSize = '2.5em';
+                        postExplosionStargazing.style.fontSize = isMobile ? '1.5em' : '2.5em'; // Smaller on mobile
                         postExplosionStargazing.style.fontStyle = 'italic';
                         postExplosionStargazing.style.color = 'rgba(255, 255, 255, 1)';
                         postExplosionStargazing.style.textAlign = 'center';
@@ -3120,7 +3198,7 @@
                         window.postExplosionTransitioning = false;
                         window.postExplosionTransitionTimer = 0;
                         window.postExplosionCurrentOpacity = 1;
-                        console.log("🌟 Created post-explosion stargazing at 140vh (absolute)");
+                        console.log(`🌟 Created post-explosion stargazing at ${isMobile ? '160vh' : '140vh'} (absolute)`);
                     }
                     
                     // Hide PRE-explosion stargazing message
@@ -3140,6 +3218,9 @@
                 }
             }
             
+            // Check if tap should be enabled (every frame)
+            checkTapPrompt();
+            
             requestAnimationFrame(render);
         }
         
@@ -3147,32 +3228,8 @@
         
         // ===================================================================
         // CLICK/TAP HANDLERS - AT THE VERY BOTTOM!
-        // Enabled when "Click or tap" hits MID-SCREEN, then enabled FOREVER
+        // tapEnabled and checkTapPrompt are defined above before render()
         // ===================================================================
-        
-        let tapEnabled = false; // Starts disabled
-        
-        // Check every animation frame if tap prompt has reached mid-screen
-        function checkTapPrompt() {
-            if (tapEnabled || explosionCompleted) return; // Already enabled or exploded
-            
-            const tapPromptElement = document.getElementById('tap-prompt');
-            if (!tapPromptElement) return;
-            
-            const tapPromptRect = tapPromptElement.getBoundingClientRect();
-            const windowHeight = window.innerHeight;
-            const midScreen = windowHeight / 2;
-            const opacity = parseFloat(tapPromptElement.style.opacity || 0);
-            
-            // If tap prompt is at or above MID-SCREEN and visible, enable tap FOREVER
-            if (tapPromptRect.top <= midScreen && opacity > 0.1) {
-                tapEnabled = true;
-                console.log("✅ TAP ENABLED - prompt hit mid-screen!");
-            }
-        }
-        
-        // Check on every render
-        setInterval(checkTapPrompt, 100); // Check 10x per second
         
         document.addEventListener('click', (e) => {
             if (explosionCompleted) return;
