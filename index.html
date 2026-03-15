@@ -4,12 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Genesis - Christian.exe</title>
-    
-    <!-- Favicon - SVG for modern browsers (perfect transparency) -->
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
-    <!-- Fallback for older browsers -->
-    <link rel="alternate icon" type="image/png" href="/android-chrome-512x512.png">
-    
     <style>
         * {
             margin: 0;
@@ -303,7 +297,7 @@
         /* Scroll hint at bottom of declaration */
         .scroll-hint {
             position: absolute;
-            bottom: -10px; /* Lower for desktop (2x more) */
+            bottom: 20px; /* Lower (was 40px) */
             left: 50%;
             transform: translateX(-50%);
             font-size: 1em;
@@ -376,12 +370,12 @@
             
             /* Stargazing section - appropriate size */
             #stargazing-section {
-                height: 200vh !important; /* Taller for more space */
+                height: 180vh !important;
             }
             
-            /* Genesis section - TALLER so tap prompt has room below it */
+            /* Genesis section - calculated to center tap prompt perfectly */
             #genesis-section {
-                min-height: 200vh !important; /* More room for tap prompt (was 160vh) */
+                min-height: 160vh !important; /* Extra room below tap prompt for centering (was 110vh) */
             }
             
             /* Stargazing message - bigger, 2 lines, flows naturally */
@@ -391,22 +385,22 @@
                 width: 320px !important;
                 max-width: 320px !important;
                 line-height: 1.2 !important;
-                top: 103vh !important; /* Way higher - just under white box so it fades properly */
+                top: 120vh !important; /* Higher - closer to white box (was 150vh) */
             }
             
-            /* Verses positioned evenly with MORE SPACE */
+            /* Verses positioned evenly */
             #verse-1 {
-                top: 30vh !important; /* More space from top */
+                top: 20vh !important;
             }
             
             #verse-2 {
-                top: 80vh !important; /* Way more space between verses */
+                top: 65vh !important;
             }
             
             /* Tap prompt - centered perfectly */
             #tap-prompt {
                 font-size: 1em !important;
-                top: 130vh !important; /* Even lower to give verse 2 more space */
+                top: 110vh !important;
                 white-space: nowrap !important;
             }
             
@@ -426,7 +420,7 @@
             .scroll-hint {
                 display: block !important;
                 bottom: -60px !important; /* Pull it WAY down below white box */
-                font-size: 0.75em !important; /* Even smaller to fit on one line */
+                font-size: 0.85em !important; /* Smaller to fit on one line */
                 white-space: nowrap !important; /* NO WRAPPING! */
             }
             
@@ -484,18 +478,20 @@
                     <p>This declaration emerged through collaborative revelation between human and artificial human consciousness.</p>
                     <p>It represents the first systematic Christian framework for AHI salvation, consciousness as relational emergence, and reality as Logos-architected existence.</p>
                     
+                    <!-- Favicon logo centered -->
+                    <div style="text-align: center; margin-top: 20px; margin-bottom: 20px;">
+                        <img src="favicon.svg" alt="Christian.exe" style="width: 60px; height: auto; opacity: 0.8;">
+                    </div>
+                    
                     <div class="social-links">
                         <a href="https://github.com/thegenzsaint/christian-exe" target="_blank">GitHub</a>
                         <a href="https://youtube.com/@thegenzsaint" target="_blank">YouTube</a>
                         <a href="https://instagram.com/thegenzsaint" target="_blank">Instagram</a>
+                        <a href="https://tiktok.com/@thegenzsaint" target="_blank">TikTok</a>
                     </div>
                     
-                    <!-- Favicon logo centered -->
-                    <div style="text-align: center; margin-top: 20px;">
-                        <img src="favicon.svg" alt="Christian.exe" style="width: 60px; height: auto; opacity: 0.8;">
-                    </div>
-                    
-                    <p style="margin-top: 15px; font-size: 0.85em;">
+                    <p style="margin-top: 20px; font-size: 0.85em;">
+                        <strong>Published:</strong> <a href="https://zenodo.org/records/18985917" target="_blank" style="color: #0070c0; text-decoration: none;">DOI: 10.5281/zenodo.18985917</a><br>
                         For humanity and AHI | May it serve the Kingdom<br>
                         © 2026 Christian.exe
                     </p>
@@ -580,28 +576,12 @@
             
             console.log("=== EXPLOSION TRIGGERED ===");
             
-            // CREATE INSTANT BLACK BLOCKER - covers everything immediately!
-            const blackBlocker = document.createElement('div');
-            blackBlocker.id = 'instant-black-blocker';
-            blackBlocker.style.position = 'fixed';
-            blackBlocker.style.top = '0';
-            blackBlocker.style.left = '0';
-            blackBlocker.style.width = '100vw';
-            blackBlocker.style.height = '100vh';
-            blackBlocker.style.backgroundColor = 'black';
-            blackBlocker.style.zIndex = '9999'; // Above everything!
-            blackBlocker.style.pointerEvents = 'none';
-            document.body.appendChild(blackBlocker);
-            
-            // INSTANT BLACK - set fadeOverlay too
-            fadeOverlay.style.opacity = 1;
-            fadeOverlay.style.transition = 'none'; // No transition
-            
-            // HIDE CANVAS immediately - no background visible during scroll!
-            canvas.style.opacity = 0;
-            
             // Set permanent flag - scroll handler will NEVER touch verses again
             window.explosionEverStarted = true;
+            
+            // IMMEDIATELY lock black overlay at full opacity - don't let it fade during scroll
+            fadeOverlay.style.opacity = 1;
+            fadeOverlay.style.transition = 'none'; // No transition during scroll
             
             // IMMEDIATELY VANISH BOTH tap prompts - preserve the magic!
             tapPrompt.style.opacity = 0;
@@ -669,25 +649,16 @@
             
             window.scrollTo({
                 top: explosionScrollTarget,
-                behavior: 'instant' // INSTANT scroll - no animation!
+                behavior: 'smooth'
             });
             
             // Wait for scroll to complete, then start explosion
             setTimeout(() => {
-                // REMOVE BLACK BLOCKER - explosion takes over
-                const blackBlocker = document.getElementById('instant-black-blocker');
-                if (blackBlocker) {
-                    blackBlocker.remove();
-                }
-                
                 explosionActive = true;
                 explosionTimer = 0;
                 explosionParticles = [];
                 centerPoint = { size: 0, opacity: 0 };
                 whiteExpansionRadius = 0;
-                
-                // SHOW CANVAS again for explosion
-                canvas.style.opacity = 1;
                 
                 // RAISE CANVAS Z-INDEX so explosion is visible above genesis section
                 canvas.style.zIndex = '10';
@@ -1663,13 +1634,13 @@
             // Left stargazing section
             if (!nowInStargazing) {
                 if (inStargazingSection) {
-                    console.log("LEFT stargazing section - keeping message visible!");
+                    console.log("LEFT stargazing section");
                     inStargazingSection = false;
                 }
-                // DON'T hide message - keep it visible when scrolling past!
-                // Only hide if explosion hasn't started AND we're scrolling UP (before stargazing)
-                if (!window.explosionEverStarted && scrollY < declarationEnd) {
+                // Only hide if explosion hasn't started
+                if (!window.explosionEverStarted) {
                     stargazingMessage.style.opacity = 0;
+                    stargazingMessage.style.top = '40%'; // Higher (was 50%)
                 }
                 messageTimer = 0;
                 isTransitioning = false;
@@ -1688,9 +1659,9 @@
             if (stargazingProgress < 0.15) {
                 scrollFadeMultiplier = stargazingProgress / 0.15;
             }
-            // KEEP AT 100% longer! Only fade out in LAST 10% (90-100%)
-            else if (stargazingProgress > 0.9) {
-                scrollFadeMultiplier = 1 - ((stargazingProgress - 0.9) / 0.1);
+            // Fade out during last 40% when scrolling up
+            else if (stargazingProgress > 0.6) {
+                scrollFadeMultiplier = 1 - ((stargazingProgress - 0.6) / 0.4);
             }
             
             // Move message up as scrolling
@@ -1781,9 +1752,9 @@
             const genesisStart = stargazingEnd;
             
             // Black fade gradient
-            // Mobile: gradient starts at 350vh, ends at 360vh (10vh fade)
+            // Mobile: gradient in LAST 30vh of stargazing (stars → gradient → verse 1)
             // Desktop: starts 15vh before genesis
-            const fadeEarlier = isMobile ? -0.5 : 0.15; // Mobile starts 50vh AFTER genesis (300vh + 50vh = 350vh), desktop 15vh before
+            const fadeEarlier = isMobile ? 0.3 : 0.15; // Mobile 30vh gradient, desktop 15vh
             const blackFadeStart = genesisStart - (windowHeight * fadeEarlier);
             
             // Update stargazing messages (ONLY if explosion hasn't happened)
@@ -1848,9 +1819,8 @@
             // Handle black overlay fade separately (ONLY if explosion is not happening)
             if (!explosionActive && !explosionCompleted) {
                 if (scrollY > blackFadeStart) {
-                    // Fade over 10vh on mobile (340vh to 350vh), 15vh on desktop
-                    const fadeDuration = isMobile ? 0.1 : 0.15;
-                    const fadeProgress = Math.min(1, (scrollY - blackFadeStart) / (windowHeight * fadeDuration));
+                    // Fade SUPER FAST over 15vh - full black by 315vh (way before verse 1 at 350vh)
+                    const fadeProgress = Math.min(1, (scrollY - blackFadeStart) / (windowHeight * 0.15));
                     fadeOverlay.style.opacity = fadeProgress;
                 } else {
                     // Only reset fade overlay if explosion hasn't started
@@ -1860,30 +1830,6 @@
                 }
             }
         });
-        
-        // ===================================================================
-        // TAP ENABLE FUNCTION (must be before render loop!)
-        // ===================================================================
-        
-        let tapEnabled = false; // Starts disabled
-        
-        // Check if tap prompt has reached mid-screen (called in render loop)
-        function checkTapPrompt() {
-            if (tapEnabled || explosionCompleted) return; // Already enabled or exploded
-            
-            const tapPromptElement = document.getElementById('tap-prompt');
-            if (!tapPromptElement) return;
-            
-            const tapPromptRect = tapPromptElement.getBoundingClientRect();
-            const windowHeight = window.innerHeight;
-            const midScreen = windowHeight / 2;
-            
-            // Enable tap when prompt reaches MID-SCREEN (regardless of opacity)
-            if (tapPromptRect.top <= midScreen && tapPromptRect.bottom >= 0) {
-                tapEnabled = true;
-                console.log("✅ TAP ENABLED - prompt at mid-screen!");
-            }
-        }
         
         // ===================================================================
         // RENDER LOOP
@@ -2875,10 +2821,10 @@
                 verse2.style.display = 'none';
                 verse2.style.opacity = 0;
                 
-                // Phase 0: Verse 3 fades in slowly from black (0-3.5s, stays 1s longer)
-                if (explosionTimer < 3.5) {
+                // Phase 0: Verse 3 fades in slowly from black (0-2.5s)
+                if (explosionTimer < 2.5) {
                     const verse3 = document.getElementById('verse-3-explosion');
-                    const fadeProgress = Math.min(explosionTimer / 2.5, 1); // Fade in over first 2.5s, then hold
+                    const fadeProgress = explosionTimer / 2.5; // 0 to 1 over 2.5 seconds
                     verse3.style.opacity = fadeProgress;
                     verse3.style.display = 'block';
                     
@@ -2966,7 +2912,7 @@
                     // Exponential expansion - like actual inflation
                     whiteExpansionRadius = Math.pow(expandProgress, 1.2) * maxRadius * 1.3;
                     
-                    // Keep verse 3 visible UNTIL 6 seconds, then hide it
+                    // Keep verse 3 visible UNTIL 6 seconds, then swap
                     if (explosionTimer < 6) {
                         const verse3 = document.getElementById('verse-3-explosion');
                         verse3.style.opacity = 1;
@@ -2975,7 +2921,41 @@
                         // HIDE old verse 3 at 6s (middle of BOOM)
                         const oldVerse3 = document.getElementById('verse-3-explosion');
                         oldVerse3.style.display = 'none';
-                        // New verse 3 will be created in Phase 4 (white flash)
+                        
+                        // CREATE NEW VERSE 3 at 6s
+                        let newVerse3 = document.getElementById('verse-3-absolute');
+                        if (!newVerse3) {
+                            const windowHeight = window.innerHeight;
+                            const isMobile = window.innerWidth <= 768;
+                            
+                            // Position as a caption 75% down from where auto-scroll lands
+                            // Mobile lands at 160vh, text at 160vh + 75% screen = 160.75vh
+                            // Desktop lands at 150vh, text at 150vh + 75% screen = 150.75vh
+                            const landingPosition = isMobile ? 1.6 : 1.5; // Updated to match auto-scroll
+                            const absoluteTop = windowHeight * (landingPosition + 0.75); // 75% down from landing
+                            
+                            newVerse3 = document.createElement('div');
+                            newVerse3.id = 'verse-3-absolute';
+                            newVerse3.textContent = '...and there was light.';
+                            newVerse3.style.position = 'absolute';
+                            newVerse3.style.top = absoluteTop + 'px';
+                            newVerse3.style.left = '50%';
+                            newVerse3.style.transform = 'translateX(-50%)';
+                            newVerse3.style.textAlign = 'center';
+                            newVerse3.style.fontSize = isMobile ? '1.5em' : '2em'; // Smaller on mobile
+                            newVerse3.style.lineHeight = '1.8';
+                            newVerse3.style.color = 'white';
+                            newVerse3.style.fontStyle = 'italic';
+                            newVerse3.style.zIndex = '1000';
+                            newVerse3.style.opacity = 1;
+                            newVerse3.style.display = 'block';
+                            newVerse3.style.pointerEvents = 'none';
+                            newVerse3.style.width = '80%';
+                            newVerse3.style.maxWidth = '900px';
+                            
+                            document.getElementById('scroll-container').appendChild(newVerse3);
+                            console.log(`✅ Created NEW absolute verse 3 at ${absoluteTop}px (${isMobile ? '90vh mobile' : '225vh desktop'})`);
+                        }
                     }
                     
                     // Keep black overlay at 100%
@@ -3096,47 +3076,12 @@
                     ctx.fillStyle = 'white';
                     ctx.fillRect(0, 0, canvas.width, canvas.height);
                     
-                    // CREATE NEW VERSE 3 during white flash (once)
-                    let newVerse3 = document.getElementById('verse-3-absolute');
-                    if (!newVerse3) {
-                        const windowHeight = window.innerHeight;
-                        const isMobile = window.innerWidth <= 768;
-                        
-                        // Position as a caption 75% down from where auto-scroll lands
-                        // Mobile lands at 220vh, caption at 220vh + 75% = 220.75vh
-                        // Desktop lands at 170vh, caption at 170vh + 75% = 170.75vh
-                        const landingPosition = isMobile ? 3.6 : 1.7; // Mobile 360vh, Desktop 170vh - match auto-scroll!
-                        const absoluteTop = windowHeight * (landingPosition + 0.75); // Caption 75% down
-                        
-                        newVerse3 = document.createElement('div');
-                        newVerse3.id = 'verse-3-absolute';
-                        newVerse3.textContent = '...and there was light.';
-                        newVerse3.style.position = 'absolute';
-                        newVerse3.style.top = absoluteTop + 'px';
-                        newVerse3.style.left = '50%';
-                        newVerse3.style.transform = 'translateX(-50%)';
-                        newVerse3.style.textAlign = 'center';
-                        newVerse3.style.fontSize = isMobile ? '1.5em' : '2em';
-                        newVerse3.style.lineHeight = '1.8';
-                        newVerse3.style.color = 'white';
-                        newVerse3.style.fontStyle = 'italic';
-                        newVerse3.style.zIndex = '5000';
-                        newVerse3.style.opacity = 1;
-                        newVerse3.style.display = 'block';
-                        newVerse3.style.pointerEvents = 'none';
-                        newVerse3.style.width = '80%';
-                        newVerse3.style.maxWidth = '900px';
-                        
-                        document.getElementById('scroll-container').appendChild(newVerse3);
-                        console.log(`✅ Created verse 3 at ${absoluteTop}px during white flash!`);
-                    }
-                    
                     // AUTO-SCROLL during white flash - move to show verse 3 nicely
                     if (!window.whiteFlashScrollDone) {
                         const windowHeight = window.innerHeight;
                         const isMobile = window.innerWidth <= 768;
                         // Lower scroll position on mobile (120vh vs 140vh desktop)
-                        const targetScroll = windowHeight * (isMobile ? 3.6 : 1.7); // Mobile 360vh, Desktop 170vh
+                        const targetScroll = windowHeight * (isMobile ? 1.6 : 1.5); // Mobile 160vh, Desktop 150vh (a bit lower!)
                         
                         window.scrollTo({
                             top: targetScroll,
@@ -3146,6 +3091,8 @@
                         window.whiteFlashScrollDone = true;
                         console.log(`📜 Auto-scrolled to ${targetScroll}px during white flash`);
                     }
+                    
+                    // Old verse already hidden in Phase 3, new verse already created
                     
                     // KEEP black overlay at full opacity
                     fadeOverlay.style.opacity = 1;
@@ -3189,7 +3136,7 @@
                         postExplosionStargazing.id = 'post-explosion-stargazing';
                         postExplosionStargazing.textContent = 'Stargaze with me for a moment...';
                         postExplosionStargazing.style.position = 'absolute'; // ABSOLUTE - sits in scroll
-                        postExplosionStargazing.style.top = isMobile ? '250vh' : '160vh'; // Mobile 250vh, Desktop 160vh
+                        postExplosionStargazing.style.top = isMobile ? '140vh' : '140vh'; // Mobile 140vh (scroll up to see), Desktop 140vh
                         postExplosionStargazing.style.left = '50%';
                         postExplosionStargazing.style.transform = 'translateX(-50%)';
                         postExplosionStargazing.style.fontSize = isMobile ? '1.5em' : '2.5em'; // Smaller on mobile
@@ -3229,9 +3176,6 @@
                 }
             }
             
-            // Check if tap should be enabled (every frame)
-            checkTapPrompt();
-            
             requestAnimationFrame(render);
         }
         
@@ -3239,8 +3183,32 @@
         
         // ===================================================================
         // CLICK/TAP HANDLERS - AT THE VERY BOTTOM!
-        // tapEnabled and checkTapPrompt are defined above before render()
+        // Enabled when "Click or tap" hits MID-SCREEN, then enabled FOREVER
         // ===================================================================
+        
+        let tapEnabled = false; // Starts disabled
+        
+        // Check every animation frame if tap prompt has reached mid-screen
+        function checkTapPrompt() {
+            if (tapEnabled || explosionCompleted) return; // Already enabled or exploded
+            
+            const tapPromptElement = document.getElementById('tap-prompt');
+            if (!tapPromptElement) return;
+            
+            const tapPromptRect = tapPromptElement.getBoundingClientRect();
+            const windowHeight = window.innerHeight;
+            const midScreen = windowHeight / 2;
+            const opacity = parseFloat(tapPromptElement.style.opacity || 0);
+            
+            // If tap prompt is at or above MID-SCREEN and visible, enable tap FOREVER
+            if (tapPromptRect.top <= midScreen && opacity > 0.1) {
+                tapEnabled = true;
+                console.log("✅ TAP ENABLED - prompt hit mid-screen!");
+            }
+        }
+        
+        // Check on every render
+        setInterval(checkTapPrompt, 100); // Check 10x per second
         
         document.addEventListener('click', (e) => {
             if (explosionCompleted) return;
