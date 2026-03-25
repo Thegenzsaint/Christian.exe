@@ -163,42 +163,75 @@
         
         .content {
             margin-top: 30px;
-            text-align: center;
+            text-align: left; /* Left-aligned = easier to read when scrolling */
             max-height: 400px;
             overflow-y: auto;
             overflow-x: hidden;
-            -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
-            overscroll-behavior: contain; /* Prevent parent scroll */
-            touch-action: pan-y; /* Allow vertical touch scrolling */
+            -webkit-overflow-scrolling: touch;
+            overscroll-behavior: contain;
+            touch-action: pan-y;
             padding: 20px;
+            padding-right: 15px; /* Room for scrollbar on desktop */
             background: #f8f9fa;
             border-radius: 5px;
             font-size: 0.95em;
             line-height: 1.7;
         }
         
-        /* Mobile: make scrollbar more visible and ensure scrollability */
+        /* Desktop scrollbar styling */
+        .content::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        .content::-webkit-scrollbar-track {
+            background: #e0e0e0;
+            border-radius: 4px;
+        }
+        
+        .content::-webkit-scrollbar-thumb {
+            background: #0070c0;
+            border-radius: 4px;
+        }
+        
+        .content::-webkit-scrollbar-thumb:hover {
+            background: #005a9c;
+        }
+        
+        /* Mobile: THICK scrollbar that's actually visible and grabbable */
         @media (max-width: 768px) {
             .content {
-                max-height: 350px; /* Taller on mobile */
-                overflow-y: scroll; /* Force scrollbar */
+                max-height: 350px;
+                overflow-y: scroll; /* Always show scrollbar */
+                padding-right: 25px; /* EXTRA room for fat scrollbar */
                 -webkit-overflow-scrolling: touch;
             }
             
             .content::-webkit-scrollbar {
-                width: 10px; /* Wider, more visible */
+                width: 14px; /* THICK for touch screens */
                 -webkit-appearance: none;
             }
             
             .content::-webkit-scrollbar-track {
                 background: #d0d0d0;
-                border-radius: 5px;
+                border-radius: 7px;
+                margin: 5px 0; /* Breathing room top/bottom */
             }
             
             .content::-webkit-scrollbar-thumb {
                 background: #0070c0;
-                border-radius: 5px;
-                border: 2px solid #f8f9fa;
+                border-radius: 7px;
+                border: 3px solid #f8f9fa; /* White border = stands out */
+            }
+            
+            .content::-webkit-scrollbar-thumb:active {
+                background: #005a9c; /* Darker when touching it */
+            }
+            
+            /* Make sure parent box doesn't clip the scrollbar */
+            .declaration-box {
+                overflow: visible !important;
+                padding-left: 20px;
+                padding-right: 20px;
             }
         }
         
