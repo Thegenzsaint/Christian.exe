@@ -163,68 +163,15 @@
         
         .content {
             margin-top: 30px;
-            text-align: left;
+            text-align: center;
             max-height: 400px;
             overflow-y: auto;
             overflow-x: hidden;
-            -webkit-overflow-scrolling: touch;
-            overscroll-behavior: contain; /* CRITICAL: Stops scroll propagation */
             padding: 20px;
             background: #f8f9fa;
             border-radius: 5px;
             font-size: 0.95em;
             line-height: 1.7;
-            position: relative; /* Creates stacking context */
-            isolation: isolate; /* Prevents scroll bleed */
-        }
-        
-        /* Desktop scrollbar */
-        .content::-webkit-scrollbar {
-            width: 10px;
-        }
-        
-        .content::-webkit-scrollbar-track {
-            background: #e0e0e0;
-            border-radius: 5px;
-        }
-        
-        .content::-webkit-scrollbar-thumb {
-            background: #0070c0;
-            border-radius: 5px;
-        }
-        
-        /* Mobile: FORCE scrollability by making box SHORT */
-        @media (max-width: 768px) {
-            .declaration-box {
-                padding: 25px 15px; /* Tighter padding */
-                margin: 0 10px; /* Breathing room from edges */
-            }
-            
-            .content {
-                max-height: 200px; /* SHORT = always needs scroll */
-                overflow-y: scroll; /* Always show scrollbar */
-                -webkit-overflow-scrolling: touch;
-                overscroll-behavior: contain;
-                touch-action: pan-y;
-                padding: 15px; /* Less padding = more content visible */
-                font-size: 0.9em; /* Slightly smaller text */
-            }
-            
-            .content::-webkit-scrollbar {
-                width: 12px; /* Visible scrollbar */
-                -webkit-appearance: none;
-            }
-            
-            .content::-webkit-scrollbar-track {
-                background: #d0d0d0;
-                border-radius: 6px;
-            }
-            
-            .content::-webkit-scrollbar-thumb {
-                background: #0070c0;
-                border-radius: 6px;
-                border: 2px solid #f8f9fa;
-            }
         }
         
         footer {
@@ -3277,39 +3224,6 @@
         window.addEventListener('resize', () => {
             canvas.width = window.innerWidth;
             canvas.height = window.innerHeight;
-        });
-        
-        // ===================================================================
-        // MOBILE FIX: Prevent touch scroll propagation from .content to page
-        // ===================================================================
-        document.addEventListener('DOMContentLoaded', function() {
-            const contentBox = document.querySelector('.content');
-            
-            if (contentBox) {
-                let startY = 0;
-                
-                contentBox.addEventListener('touchstart', function(e) {
-                    startY = e.touches[0].pageY;
-                }, { passive: true });
-                
-                contentBox.addEventListener('touchmove', function(e) {
-                    const scrollTop = contentBox.scrollTop;
-                    const scrollHeight = contentBox.scrollHeight;
-                    const height = contentBox.clientHeight;
-                    const deltaY = e.touches[0].pageY - startY;
-                    
-                    // At top, trying to scroll up = allow page scroll
-                    // At bottom, trying to scroll down = allow page scroll
-                    // Otherwise = BLOCK propagation to page
-                    
-                    const atTop = scrollTop === 0 && deltaY > 0;
-                    const atBottom = scrollTop + height >= scrollHeight && deltaY < 0;
-                    
-                    if (!atTop && !atBottom) {
-                        e.stopPropagation(); // Keep scroll inside the box
-                    }
-                }, { passive: true });
-            }
         });
     </script>
 </body>
