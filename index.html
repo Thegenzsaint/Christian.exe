@@ -164,14 +164,20 @@
         .content {
             margin-top: 30px;
             text-align: center;
-            max-height: 400px;
-            overflow-y: auto;
-            overflow-x: hidden;
             padding: 20px;
             background: #f8f9fa;
             border-radius: 5px;
             font-size: 0.95em;
             line-height: 1.7;
+        }
+
+        /* Only add max-height on mobile */
+        @media (max-width: 768px) {
+        .content {
+            max-height: 400px;
+            overflow-y: auto;
+            overflow-x: hidden;
+            }
         }
         
         footer {
@@ -455,7 +461,7 @@
                 <details class="read-online">
                     <summary>▶ Read Online</summary>
                     <div class="content">
-                        <iframe src="CHRISTIAN_EXE.md" style="width: 100%; min-height: 100vh; border: none;" onload="this.style.height = this.contentWindow.document.body.scrollHeight + 'px';"></iframe>
+                        <iframe src="CHRISTIAN_EXE_WEB.html" style="width: 100%; border: none;"></iframe>
                     </div>
                 </details>
                 
