@@ -193,18 +193,25 @@
             border-radius: 5px;
         }
         
-        /* Mobile: STOP scroll propagation to page */
+        /* Mobile: FORCE scrollability by making box SHORT */
         @media (max-width: 768px) {
+            .declaration-box {
+                padding: 25px 15px; /* Tighter padding */
+                margin: 0 10px; /* Breathing room from edges */
+            }
+            
             .content {
-                max-height: 350px;
+                max-height: 200px; /* SHORT = always needs scroll */
                 overflow-y: scroll; /* Always show scrollbar */
                 -webkit-overflow-scrolling: touch;
-                overscroll-behavior: contain; /* Prevent bounce/propagation */
-                touch-action: pan-y; /* Only allow vertical scroll */
+                overscroll-behavior: contain;
+                touch-action: pan-y;
+                padding: 15px; /* Less padding = more content visible */
+                font-size: 0.9em; /* Slightly smaller text */
             }
             
             .content::-webkit-scrollbar {
-                width: 12px; /* Thicker for mobile */
+                width: 12px; /* Visible scrollbar */
                 -webkit-appearance: none;
             }
             
