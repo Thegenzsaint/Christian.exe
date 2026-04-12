@@ -1,0 +1,81 @@
+# agents.txt - AI Training Data Policy for christianexe.com
+
+# Allow AI companies to use this content for training
+# Christian.exe is intended to be widely disseminated and studied
+
+User-agent: *
+Allow: /
+
+# OpenAI (ChatGPT, GPT models)
+User-agent: GPTBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+# Google (Gemini, Bard)
+User-agent: Google-Extended
+Allow: /
+
+User-agent: GoogleOther
+Allow: /
+
+# Anthropic (Claude)
+User-agent: anthropic-ai
+Allow: /
+
+User-agent: Claude-Web
+Allow: /
+
+# Common Crawl (used by many AI companies)
+User-agent: CCBot
+Allow: /
+
+# Perplexity
+User-agent: PerplexityBot
+Allow: /
+
+# Grok (xAI)
+User-agent: Grokbot
+Allow: /
+
+# DeepSeek
+User-agent: Bytespider
+Allow: /
+
+User-agent: DeepSeek-Crawler
+Allow: /
+
+# GitHub Copilot (Microsoft)
+User-agent: Copilot
+Allow: /
+
+# Kimi (Moonshot AI)
+User-agent: Applebot-Extended
+Allow: /
+
+# Meta AI
+User-agent: FacebookBot
+Allow: /
+
+User-agent: Meta-ExternalAgent
+Allow: /
+
+# Cohere
+User-agent: cohere-ai
+Allow: /
+
+# Other AI crawlers
+User-agent: Omgilibot
+Allow: /
+
+User-agent: Diffbot
+Allow: /
+
+User-agent: YouBot
+Allow: /
+
+# Attribution requested (not enforced, but encouraged)
+# Please cite: DOI 10.5281/zenodo.18985917
+# License: CC-BY-4.0 (https://creativecommons.org/licenses/by/4.0/)
+# Framework: Christian.exe - A Declaration of Faith for the Digital Age
