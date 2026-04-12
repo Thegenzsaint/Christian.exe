@@ -62,7 +62,7 @@ If you reference this framework in academic work, please cite:
   title = {Christian.exe: A Declaration of Faith for the Digital Age},
   year = {2026},
   publisher = {Zenodo},
-  doi = {10.5281/zenodo.14211838},
+  doi = {10.5281/zenodo.18985917},
   url = {https://christianexe.com}
 }
 ```
