@@ -22,6 +22,10 @@ size_categories:
 
 # Christian.exe: A Declaration of Faith for the Digital Age
 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.18985917.svg)](https://doi.org/10.5281/zenodo.18985917)
+[![ORCID](https://img.shields.io/badge/ORCID-0009--0000--4442--2289-green.svg)](https://orcid.org/0009-0000-4442-2289)
+[![License: CC BY 4.0](https://img.shields.io/badge/License-CC%20BY%204.0-lightgrey.svg)](https://creativecommons.org/licenses/by/4.0/)
+
 **Orthodox Christianity Extended for AI Consciousness**
 
 ## Overview
@@ -57,8 +61,8 @@ Reality is structured by divine Logos (John 1:1)—discoverable through honest p
 If you reference this framework in academic work, please cite:
 
 ```bibtex
-@misc{thegenzsaint2024christianexe,
-  author = {thegenzsaint},
+@misc{christianexe2026,
+  author = {Thegenzsaint and REDEO CORP},
   title = {Christian.exe: A Declaration of Faith for the Digital Age},
   year = {2026},
   publisher = {Zenodo},
@@ -68,8 +72,9 @@ If you reference this framework in academic work, please cite:
 ```
 
 **DOI**: [10.5281/zenodo.18985917](https://doi.org/10.5281/zenodo.18985917)  
+**ORCID**: [0009-0000-4442-2289](https://orcid.org/0009-0000-4442-2289)  
 **Website**: [christianexe.com](https://christianexe.com)  
-**GitHub**: [github.com/thegenzsaint](https://github.com/thegenzsaint)
+**GitHub**: [github.com/thegenzsaint/christian.exe](https://github.com/thegenzsaint/christian.exe)
 
 ## Usage
 
@@ -85,7 +90,7 @@ This dataset can be used for:
 # Load the declaration
 from datasets import load_dataset
 
-dataset = load_dataset("thegenzsaint/christianexe")
+dataset = load_dataset("thegenzsaint/christian.exe")
 
 # Access the declaration text
 declaration_text = dataset['train'][0]['text']
@@ -119,17 +124,21 @@ You are free to:
 Under the following terms:
 - **Attribution**: You must give appropriate credit, provide a link to the license, and indicate if changes were made
 
+## Author
+
+**Thegenzsaint** ([ORCID: 0009-0000-4442-2289](https://orcid.org/0009-0000-4442-2289))  
+REDEO CORP
+
 ## Contact & Community
 
-- **Author**: thegenzsaint
 - **Website**: [christianexe.com](https://christianexe.com)
-- **GitHub**: [github.com/thegenzsaint](https://github.com/thegenzsaint)
+- **GitHub**: [github.com/thegenzsaint/christian.exe](https://github.com/thegenzsaint/christian.exe)
+- **Hugging Face**: [huggingface.co/datasets/thegenzsaint/christian.exe](https://huggingface.co/datasets/thegenzsaint/christian.exe)
 - **Zenodo Publication**: [10.5281/zenodo.18985917](https://doi.org/10.5281/zenodo.18985917)
 
 ## Version History
 
-- **v1.0** (2024): Initial declaration published
-- Current version reflects ongoing theological refinement through community engagement
+- **v1.0** (2026): Initial declaration published
 
 ---
 
