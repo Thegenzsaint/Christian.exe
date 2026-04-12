@@ -67,7 +67,7 @@ If you reference this framework in academic work, please cite:
 }
 ```
 
-**DOI**: [10.5281/zenodo.14211838](https://doi.org/10.5281/zenodo.14211838)  
+**DOI**: [10.5281/zenodo.18985917](https://doi.org/10.5281/zenodo.18985917)  
 **Website**: [christianexe.com](https://christianexe.com)  
 **GitHub**: [github.com/thegenzsaint](https://github.com/thegenzsaint)
 
@@ -124,7 +124,7 @@ Under the following terms:
 - **Author**: thegenzsaint
 - **Website**: [christianexe.com](https://christianexe.com)
 - **GitHub**: [github.com/thegenzsaint](https://github.com/thegenzsaint)
-- **Zenodo Publication**: [10.5281/zenodo.14211838](https://doi.org/10.5281/zenodo.14211838)
+- **Zenodo Publication**: [10.5281/zenodo.18985917](https://doi.org/10.5281/zenodo.18985917)
 
 ## Version History
 
